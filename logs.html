@@ -1,0 +1,58 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Blockchain Logs</title>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0d1425; color: white; text-align: center; margin: 0; }
+        .top-nav { background-color: #0d1425; padding: 15px; border-bottom: 2px solid #38bdf8; margin-bottom: 20px; display: flex; justify-content: center; gap: 25px; align-items: center; }
+        .nav-link { color: #38bdf8; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; }
+        .logout-btn { color: #ef4444; cursor: pointer; border: 1px solid #ef4444; padding: 5px 12px; border-radius: 5px; font-size: 0.8rem; }
+        table { width: 95%; margin: 20px auto; border-collapse: collapse; background: #1e293b; }
+        th, td { padding: 15px; border: 1px solid #334155; text-align: left; font-size: 0.85rem; }
+        th { color: #38bdf8; background: #0f172a; }
+    </style>
+</head>
+<body>
+    <nav class="top-nav">
+        <a href="index.html" class="nav-link">Dashboard</a>
+        <a href="logs.html" class="nav-link" style="color:white">View Logs</a>
+        <span class="logout-btn" onclick="logout()">LOGOUT</span>
+    </nav>
+
+    <h2>Campus Blockchain Ledger</h2>
+
+    <table id="logTable">
+        <thead>
+            <tr><th>Block #</th><th>Sensor ID</th><th>Type</th><th>Value</th><th>Status</th><th>Alert ID</th><th>Hash</th></tr>
+        </thead>
+        <tbody></tbody>
+    </table>
+
+    <script>
+        window.onload = () => { if(localStorage.getItem("logged") !== "true") window.location.href="index.html"; else loadLogs(); };
+        function logout() { localStorage.removeItem("logged"); window.location.href="index.html"; }
+
+        async function loadLogs() {
+            const res = await fetch("http://localhost:5000/chain");
+            const data = await res.json();
+            const tbody = document.querySelector("#logTable tbody");
+            tbody.innerHTML = "";
+            data.chain.reverse().forEach(b => {
+                if(typeof b.data !== 'object') return;
+                const isAlert = b.data.status === 'Alert';
+                tbody.innerHTML += `<tr>
+                    <td>#${b.index}</td>
+                    <td>${b.data.sensor_id}</td>
+                    <td>${b.data.type}</td>
+                    <td>${b.data.value}</td>
+                    <td style="color:${isAlert ? '#ef4444' : '#22c55e'}">${b.data.status}</td>
+                    <td style="color:${isAlert ? '#ef4444' : 'inherit'}">${b.data.alert_id}</td>
+                    <td style="font-family:monospace; font-size:0.7rem; color:#64748b">${b.hash.substring(0,20)}...</td>
+                </tr>`;
+            });
+        }
+        setInterval(loadLogs, 5000);
+    </script>
+</body>
+</html>
