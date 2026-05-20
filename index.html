@@ -1,0 +1,288 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Smart Campus AI Dashboard</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body { font-family: 'Segoe UI', sans-serif; background-color: #0d1425; color: white; text-align: center; margin: 0; }
+        .top-nav { background-color: #0d1425; padding: 15px; border-bottom: 2px solid #38bdf8; margin-bottom: 20px; display: flex; justify-content: center; gap: 25px; align-items: center; }
+        .nav-link { color: #38bdf8; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; }
+        .logout-btn { color: #ef4444; cursor: pointer; border: 1px solid #ef4444; padding: 5px 12px; border-radius: 5px; font-size: 0.8rem; }
+        
+        #loginBox { background: #1e293b; padding: 40px; border-radius: 15px; margin-top: 150px; display: inline-block; border: 1px solid #334155; }
+        input { padding: 12px; margin: 10px; border-radius: 5px; border: 1px solid #334155; background: #0d1425; color: white; width: 220px; }
+        
+        .container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px; }
+        
+        .card { background: #1e293b; width: 220px; padding: 25px; border-radius: 15px; border: 1px solid #334155; cursor: pointer; transition: 0.3s; }
+        .card:hover { border-color: #38bdf8; transform: translateY(-5px); background: #243147; }
+        
+        .value { font-size: 2.8rem; font-weight: bold; color: #22c55e; margin: 10px 0; }
+        .card span { color: #94a3b8; font-size: 0.9rem; }
+
+        .ai-forecast-box {
+            margin-top: 15px;
+            padding-top: 10px;
+            border-top: 1px solid #334155;
+            font-size: 0.8rem;
+            color: #38bdf8;
+            font-style: italic;
+            cursor: help;
+        }
+        .ai-forecast-box:hover { color: white; }
+
+        /* FIXED DASHBOARD GRAPH SIZE */
+        #chart-container {
+            cursor: pointer;
+            transition: 0.3s ease;
+            width: 850px;
+            height: 380px;
+            margin: 20px auto;
+            background: #1e293b;
+            border-radius: 15px;
+            padding: 20px;
+            border: 1px solid #334155;
+        }
+        #chart-container:hover { border-color: #38bdf8; transform: scale(1.01); }
+        
+        /* MODAL STYLING */
+        #modal { display:none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); }
+        .modal-content { background: #1e293b; margin: 5% auto; padding: 30px; width: 450px; border-radius: 15px; border: 1px solid #38bdf8; text-align: left; position: relative; }
+        .modal-large { width: 90% !important; max-width: 1200px !important; }
+        
+        button.login-btn { width: 100%; padding: 12px; background: #38bdf8; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: #0d1425; }
+        button.login-btn:hover { background: #7dd3fc; }
+    </style>
+</head>
+<body>
+
+<!-- Global Modal -->
+<div id="modal">
+    <div class="modal-content">
+        <span style="float:right; cursor:pointer; color:#ef4444; font-size: 1.5rem;" onclick="closeModal()">&times;</span>
+        <h2 id="modal-title" style="color:#38bdf8"></h2>
+        <hr style="border:0; border-top:1px solid #334155; margin-bottom: 20px;">
+        <div id="modal-body"></div>
+    </div>
+</div>
+
+<!-- Login Section -->
+<div id="loginBox">
+    <h2 style="color:#38bdf8">Admin Login</h2>
+    <input id="user" placeholder="Username" type="text">
+    <input id="pass" type="password" placeholder="Password">
+    <button class="login-btn" onclick="login()">LOGIN</button>
+</div>
+
+<!-- Dashboard Section -->
+<div id="dashboard" style="display:none;">
+    <nav class="top-nav">
+        <a href="#" class="nav-link" style="color:white; border-bottom: 2px solid #38bdf8;">Dashboard</a>
+        <a href="logs.html" class="nav-link">View Logs</a>
+        <span class="logout-btn" onclick="logout()">LOGOUT</span>
+    </nav>
+
+    <h1>Smart Campus <span style="color:#38bdf8">AI</span> Ledger</h1>
+
+    <div class="container">
+        <div class="card" onclick="showDetails('sensors')"><h4>SENSORS</h4><div id="total-sensors" class="value" style="color:#38bdf8">0</div></div>
+        <div class="card" onclick="showDetails('alerts')"><h4>ALERTS</h4><div id="active-alerts" class="value" style="color:#ef4444">0</div></div>
+    </div>
+
+    <div class="container">
+        <div class="card" onclick="filterGraph(0)">
+            <h3>Temperature</h3>
+            <div id="temperature" class="value">--</div>
+            <span>°C</span>
+            <div class="ai-forecast-box" onclick="explainAI('temperature'); event.stopPropagation();">
+                AI Forecast: <span id="p-temperature">...</span>
+            </div>
+        </div>
+        <div class="card" onclick="filterGraph(1)">
+            <h3>Light</h3>
+            <div id="light" class="value">--</div>
+            <span>lux</span>
+            <div class="ai-forecast-box" onclick="explainAI('light'); event.stopPropagation();">
+                AI Forecast: <span id="p-light">...</span>
+            </div>
+        </div>
+        <div class="card" onclick="filterGraph(2)">
+            <h3>Energy</h3>
+            <div id="energy" class="value">--</div>
+            <span>W</span>
+            <div class="ai-forecast-box" onclick="explainAI('energy'); event.stopPropagation();">
+                AI Forecast: <span id="p-energy">...</span>
+            </div>
+        </div>
+    </div>
+
+    <!-- Clickable Graph Container -->
+    <div id="chart-container" onclick="enlargeChart()">
+        <canvas id="chart"></canvas>
+    </div>
+</div>
+
+<script>
+let chart, rawData = [];
+
+// Persistence Check
+window.onload = () => { 
+    if(localStorage.getItem("logged") === "true") showDashboard(); 
+};
+
+// --- AUTHENTICATION ---
+async function login() {
+    const userVal = document.getElementById("user").value;
+    const passVal = document.getElementById("pass").value;
+
+    try {
+        const res = await fetch("http://localhost:5000/login", {
+            method: "POST", 
+            headers: {"Content-Type":"application/json"},
+            body: JSON.stringify({ user: userVal, pass: passVal })
+        });
+        const d = await res.json();
+        if(d.status === "success") { 
+            localStorage.setItem("logged", "true"); 
+            showDashboard(); 
+        } else { 
+            alert("Invalid Credentials (admin / 1234)"); 
+        }
+    } catch (e) {
+        alert("Server not found. Ensure app.py is running.");
+    }
+}
+
+function logout() { 
+    localStorage.removeItem("logged"); 
+    window.location.reload(); 
+}
+
+function showDashboard() {
+    document.getElementById("loginBox").style.display = "none";
+    document.getElementById("dashboard").style.display = "block";
+    loadData(); 
+    setInterval(loadData, 3000);
+}
+
+// --- MODAL LOGIC ---
+function closeModal() { 
+    document.getElementById("modal").style.display = "none"; 
+    document.querySelector(".modal-content").classList.remove("modal-large");
+}
+
+function showDetails(type) {
+    const b = document.getElementById("modal-body");
+    document.getElementById("modal-title").innerText = type.toUpperCase() + " DETAILS";
+    document.getElementById("modal").style.display = "block"; 
+    b.innerHTML = "";
+    
+    if(type === 'sensors') {
+        let s = new Set(); 
+        rawData.forEach(x => { if(x.data.sensor_id) s.add(`<b>${x.data.sensor_id}</b> (${x.data.location})`); });
+        s.size > 0 ? s.forEach(v => b.innerHTML += `<p>📡 ${v}</p>`) : b.innerHTML = "No sensors active.";
+    } else {
+        const alerts = rawData.filter(x => x.data.status === 'Alert');
+        alerts.length > 0 ? alerts.forEach(a => b.innerHTML += `<p style="color:#ef4444">⚠️ ${a.data.type}: ${a.data.value} @ ${a.data.location}</p>`) : b.innerHTML = "No alerts found.";
+    }
+}
+
+function explainAI(type) {
+    const b = document.getElementById("modal-body");
+    document.getElementById("modal-title").innerText = "AI PREDICTION LOGIC";
+    document.getElementById("modal").style.display = "block";
+    b.innerHTML = `
+        <p><b>Target:</b> Next expected ${type} reading.</p>
+        <p><b>Model:</b> Scikit-Learn Linear Regression.</p>
+        <p><b>Analysis:</b> The AI looks at the most recent blockchain entries to calculate a trendline. By projecting this line, it predicts the next value based on previous patterns.</p>
+        <p style="color:#38bdf8"><i>Prediction updates every 3 seconds.</i></p>
+    `;
+}
+
+// --- GRAPHING LOGIC ---
+function enlargeChart() {
+    const modalBody = document.getElementById("modal-body");
+    document.querySelector(".modal-content").classList.add("modal-large");
+    document.getElementById("modal-title").innerText = "Campus Analytics Detail View";
+    modalBody.innerHTML = '<canvas id="enlargedChart" style="height: 500px; width: 100%;"></canvas>';
+    document.getElementById("modal").style.display = "block";
+
+    new Chart(document.getElementById("enlargedChart"), {
+        type: 'line',
+        data: JSON.parse(JSON.stringify(chart.data)),
+        options: {
+            responsive: true, maintainAspectRatio: false,
+            plugins: { legend: { labels: { color: 'white', font: { size: 14 } } } },
+            scales: { y: { ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } }
+        }
+    });
+}
+
+function filterGraph(idx) {
+    chart.data.datasets.forEach((ds, i) => ds.hidden = (i !== idx));
+    chart.update();
+}
+
+// --- DATA FETCHING ---
+async function loadData() {
+    try {
+        const [chainRes, aiRes] = await Promise.all([
+            fetch("http://localhost:5000/chain"), 
+            fetch("http://localhost:5000/predict")
+        ]);
+        const data = await chainRes.json(); 
+        const aiData = await aiRes.json();
+        
+        rawData = data.chain.filter(b => typeof b.data === 'object');
+        
+        // Update Stats
+        document.getElementById('total-sensors').innerText = data.total_sensors;
+        document.getElementById('active-alerts').innerText = data.active_alerts;
+        document.getElementById('p-temperature').innerText = aiData.temperature || "...";
+        document.getElementById('p-light').innerText = aiData.light || "...";
+        document.getElementById('p-energy').innerText = aiData.energy || "...";
+
+        let tVal = [], lVal = [], eVal = [], lbls = [];
+        let cur = {t:"--", l:"--", e:"--"};
+
+        rawData.forEach(b => {
+            const time = new Date(b.timestamp * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            if(b.data.type === "temperature") { cur.t = b.data.value; tVal.push(b.data.value); lbls.push(time); }
+            if(b.data.type === "light") { cur.l = b.data.value; lVal.push(b.data.value); }
+            if(b.data.type === "energy") { cur.e = b.data.value; eVal.push(b.data.value); }
+        });
+
+        document.getElementById("temperature").innerText = cur.t; 
+        document.getElementById("light").innerText = cur.l; 
+        document.getElementById("energy").innerText = cur.e;
+
+        if(!chart) {
+            chart = new Chart(document.getElementById("chart"), {
+                type: "line",
+                data: { 
+                    labels: lbls, 
+                    datasets: [
+                        { label: "Temp", data: tVal, borderColor: "#38bdf8", tension: 0.3 },
+                        { label: "Light", data: lVal, borderColor: "#fbbf24", tension: 0.3 },
+                        { label: "Energy", data: eVal, borderColor: "#22c55e", tension: 0.3 }
+                    ]
+                },
+                options: { 
+                    responsive: true, maintainAspectRatio: false,
+                    plugins: { legend: { labels: { color: 'white' } } },
+                    scales: { y: { ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } }
+                }
+            });
+        } else {
+            chart.data.labels = lbls;
+            chart.data.datasets[0].data = tVal;
+            chart.data.datasets[1].data = lVal;
+            chart.data.datasets[2].data = eVal;
+            chart.update('none');
+        }
+    } catch(e) { console.log("Data connection lost."); }
+}
+</script>
+</body>
+</html>
