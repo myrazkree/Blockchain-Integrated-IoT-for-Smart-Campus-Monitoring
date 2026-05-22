@@ -6,9 +6,9 @@
 #define DHTTYPE DHT22
 DHT dht(DHTPIN, DHTTYPE);
 
-const char* ssid = "YOUR_WIFI_NAME";
-const char* password = "YOUR_WIFI_PASSWORD";
-const char* server = "http://YOUR_COMPUTER_IP:5000/add_data";
+const char* ssid = "mirae";
+const char* password = "miraena13";
+const char* server = "http://10.149.88.207:5000/add_data";
 
 void setup() {
   Serial.begin(115200);
