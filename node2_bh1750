@@ -1,0 +1,57 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <Wire.h>
+#include <BH1750.h>
+
+BH1750 lightMeter;
+
+const char* ssid = "mirae";
+const char* password = "miraena13";
+
+const char* server = "http://10.149.88.207:5000/add_data";
+
+void setup() {
+
+  Serial.begin(115200);
+
+  Wire.begin();
+
+  lightMeter.begin();
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("WiFi Connected");
+}
+
+void loop() {
+
+  float lux = lightMeter.readLightLevel();
+
+  HTTPClient http;
+
+  http.begin(server);
+
+  http.addHeader("Content-Type", "application/json");
+
+  String status = (lux > 700.0) ? "Alert" : "Normal";
+
+  String json =
+    "{\"sensor_id\":\"S002\","
+    "\"location\":\"Block B\","
+    "\"type\":\"light\","
+    "\"value\":" + String(lux) + ","
+    "\"status\":\"" + status + "\"}";
+
+  int response = http.POST(json);
+
+  Serial.println(response);
+
+  http.end();
+
+  delay(5000);
+}
