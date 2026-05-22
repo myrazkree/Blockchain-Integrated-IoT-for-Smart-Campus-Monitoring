@@ -1,0 +1,75 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <PZEM004Tv30.h>
+
+PZEM004Tv30 pzem(Serial2);
+
+const char* ssid = "mirae";
+const char* password = "miraena13";
+
+const char* server = "http://10.149.88.207:5000/add_data";
+
+void connectWiFi() {
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("WiFi Connected");
+}
+
+void sendData(float power) {
+
+  if (WiFi.status() == WL_CONNECTED) {
+
+    HTTPClient http;
+
+    http.begin(server);
+
+    http.addHeader("Content-Type", "application/json");
+
+    String status = (power > 45.0) ? "Alert" : "Normal";
+
+    String json =
+      "{\"sensor_id\":\"S003\","
+      "\"location\":\"Block C\","
+      "\"type\":\"energy\","
+      "\"value\":" + String(power) + ","
+      "\"status\":\"" + status + "\"}";
+
+    int response = http.POST(json);
+
+    Serial.println(response);
+
+    http.end();
+  }
+}
+
+void setup() {
+
+  Serial.begin(115200);
+
+  connectWiFi();
+}
+
+void loop() {
+
+  if (WiFi.status() != WL_CONNECTED) {
+    connectWiFi();
+  }
+
+  float power = pzem.power();
+
+  if (!isnan(power)) {
+
+    Serial.print("Power: ");
+    Serial.println(power);
+
+    sendData(power);
+  }
+
+  delay(5000);
+}
