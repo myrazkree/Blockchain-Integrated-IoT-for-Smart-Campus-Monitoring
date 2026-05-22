@@ -247,11 +247,33 @@ async function loadData() {
         let cur = {t:"--", l:"--", e:"--"};
 
         rawData.forEach(b => {
-            const time = new Date(b.timestamp * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
-            if(b.data.type === "temperature") { cur.t = b.data.value; tVal.push(b.data.value); lbls.push(time); }
-            if(b.data.type === "light") { cur.l = b.data.value; lVal.push(b.data.value); }
-            if(b.data.type === "energy") { cur.e = b.data.value; eVal.push(b.data.value); }
-        });
+
+        const time = new Date(b.timestamp * 1000)
+        .toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+
+        lbls.push(time);
+
+        if(b.data.type === "temperature") {
+            cur.t = b.data.value;
+            tVal.push(b.data.value);
+            } else {
+            tVal.push(null);
+        }
+
+        if(b.data.type === "light") {
+            cur.l = b.data.value;
+            lVal.push(b.data.value);
+        } else {
+            lVal.push(null);
+        }
+
+        if(b.data.type === "energy") {
+            cur.e = b.data.value;
+            eVal.push(b.data.value);
+        } else {
+            eVal.push(null);
+        }
+    });
 
         document.getElementById("temperature").innerText = cur.t; 
         document.getElementById("light").innerText = cur.l; 
