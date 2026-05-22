@@ -1,0 +1,60 @@
+#include <WiFi.h>
+#include <HTTPClient.h>
+#include <DHT.h>
+
+#define DHTPIN 4
+#define DHTTYPE DHT22
+
+DHT dht(DHTPIN, DHTTYPE);
+
+const char* ssid = "mirae";
+const char* password = "miraena13";
+
+const char* server = "http://10.149.88.207:5000/add_data";
+
+void setup() {
+
+  Serial.begin(115200);
+
+  dht.begin();
+
+  WiFi.begin(ssid, password);
+
+  while (WiFi.status() != WL_CONNECTED) {
+    delay(500);
+    Serial.print(".");
+  }
+
+  Serial.println("WiFi Connected");
+}
+
+void loop() {
+
+  float temp = dht.readTemperature();
+
+  if (!isnan(temp)) {
+
+    HTTPClient http;
+
+    http.begin(server);
+
+    http.addHeader("Content-Type", "application/json");
+
+    String status = (temp > 30.0) ? "Alert" : "Normal";
+
+    String json =
+      "{\"sensor_id\":\"S001\","
+      "\"location\":\"Block A\","
+      "\"type\":\"temperature\","
+      "\"value\":" + String(temp) + ","
+      "\"status\":\"" + status + "\"}";
+
+    int response = http.POST(json);
+
+    Serial.println(response);
+
+    http.end();
+  }
+
+  delay(5000);
+}
