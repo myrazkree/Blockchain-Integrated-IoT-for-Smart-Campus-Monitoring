@@ -2,23 +2,78 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Campus AI Dashboard</title>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0d1425; color: white; text-align: center; margin: 0; }
-        .top-nav { background-color: #0d1425; padding: 15px; border-bottom: 2px solid #38bdf8; margin-bottom: 20px; display: flex; justify-content: center; gap: 25px; align-items: center; }
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #0d1425;
+            color: white;
+            text-align: center;
+            margin: 0;
+            padding: 0;
+        }
+        .top-nav {
+            background-color: #0d1425;
+            padding: 15px;
+            border-bottom: 2px solid #38bdf8;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            align-items: center;
+            flex-wrap: wrap;
+        }
         .nav-link { color: #38bdf8; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; }
         .logout-btn { color: #ef4444; cursor: pointer; border: 1px solid #ef4444; padding: 5px 12px; border-radius: 5px; font-size: 0.8rem; }
-        
-        #loginBox { background: #1e293b; padding: 40px; border-radius: 15px; margin-top: 150px; display: inline-block; border: 1px solid #334155; }
-        input { padding: 12px; margin: 10px; border-radius: 5px; border: 1px solid #334155; background: #0d1425; color: white; width: 220px; }
-        
-        .container { display: flex; justify-content: center; gap: 20px; flex-wrap: wrap; padding: 20px; }
-        
-        .card { background: #1e293b; width: 220px; padding: 25px; border-radius: 15px; border: 1px solid #334155; cursor: pointer; transition: 0.3s; }
+
+        #loginBox {
+            background: #1e293b;
+            padding: 40px;
+            border-radius: 15px;
+            margin: 80px auto 20px auto;
+            display: block;
+            border: 1px solid #334155;
+            max-width: 320px;
+            width: 85%;
+            box-sizing: border-box;
+        }
+        input {
+            padding: 12px;
+            margin: 10px 0;
+            border-radius: 5px;
+            border: 1px solid #334155;
+            background: #0d1425;
+            color: white;
+            width: 100%;
+            box-sizing: border-box;
+        }
+
+        .container {
+            display: flex;
+            justify-content: center;
+            gap: 20px;
+            flex-wrap: wrap;
+            padding: 10px;
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .card {
+            background: #1e293b;
+            flex: 1 1 200px;
+            max-width: 280px;
+            padding: 25px 15px;
+            border-radius: 15px;
+            border: 1px solid #334155;
+            cursor: pointer;
+            transition: 0.3s;
+            box-sizing: border-box;
+        }
         .card:hover { border-color: #38bdf8; transform: translateY(-5px); background: #243147; }
-        
-        .value { font-size: 2.8rem; font-weight: bold; color: #22c55e; margin: 10px 0; }
+
+        .value { font-size: clamp(1.8rem, 4vw, 2.8rem); font-weight: bold; color: #22c55e; margin: 10px 0; }
         .card span { color: #94a3b8; font-size: 0.9rem; }
 
         .ai-forecast-box {
@@ -32,32 +87,31 @@
         }
         .ai-forecast-box:hover { color: white; }
 
-        /* FIXED DASHBOARD GRAPH SIZE */
         #chart-container {
             cursor: pointer;
             transition: 0.3s ease;
-            width: 850px;
-            height: 380px;
+            width: 90%;
+            max-width: 850px;
+            height: clamp(250px, 50vh, 380px);
             margin: 20px auto;
             background: #1e293b;
             border-radius: 15px;
             padding: 20px;
             border: 1px solid #334155;
+            box-sizing: border-box;
         }
         #chart-container:hover { border-color: #38bdf8; transform: scale(1.01); }
-        
-        /* MODAL STYLING */
-        #modal { display:none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); }
-        .modal-content { background: #1e293b; margin: 5% auto; padding: 30px; width: 450px; border-radius: 15px; border: 1px solid #38bdf8; text-align: left; position: relative; }
-        .modal-large { width: 90% !important; max-width: 1200px !important; }
-        
+
+        #modal { display:none; position: fixed; z-index: 100; left: 0; top: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.85); overflow-y: auto; }
+        .modal-content { background: #1e293b; margin: 10% auto; padding: 25px; width: 90%; max-width: 450px; border-radius: 15px; border: 1px solid #38bdf8; text-align: left; position: relative; box-sizing: border-box; }
+        .modal-large { width: 95% !important; max-width: 1200px !important; }
+
         button.login-btn { width: 100%; padding: 12px; background: #38bdf8; border: none; border-radius: 5px; font-weight: bold; cursor: pointer; color: #0d1425; }
         button.login-btn:hover { background: #7dd3fc; }
     </style>
 </head>
 <body>
 
-<!-- Global Modal -->
 <div id="modal">
     <div class="modal-content">
         <span style="float:right; cursor:pointer; color:#ef4444; font-size: 1.5rem;" onclick="closeModal()">&times;</span>
@@ -67,19 +121,17 @@
     </div>
 </div>
 
-<!-- Login Section -->
-<div id="loginBox">
+<div id="loginBox" style="display: none;">
     <h2 style="color:#38bdf8">Admin Login</h2>
     <input id="user" placeholder="Username" type="text">
     <input id="pass" type="password" placeholder="Password">
     <button class="login-btn" onclick="login()">LOGIN</button>
 </div>
 
-<!-- Dashboard Section -->
 <div id="dashboard" style="display:none;">
     <nav class="top-nav">
         <a href="#" class="nav-link" style="color:white; border-bottom: 2px solid #38bdf8;">Dashboard</a>
-        <a href="logs.html" class="nav-link">View Logs</a>
+        <a href="/logs" class="nav-link">View Logs</a>
         <span class="logout-btn" onclick="logout()">LOGOUT</span>
     </nav>
 
@@ -117,7 +169,6 @@
         </div>
     </div>
 
-    <!-- Clickable Graph Container -->
     <div id="chart-container" onclick="enlargeChart()">
         <canvas id="chart"></canvas>
     </div>
@@ -126,9 +177,13 @@
 <script>
 let chart, rawData = [];
 
-// Persistence Check
-window.onload = () => { 
-    if(localStorage.getItem("logged") === "true") showDashboard(); 
+// FIXED: Automatically handles visibility based on auth storage check
+window.onload = () => {
+    if(localStorage.getItem("logged") === "true") {
+        showDashboard();
+    } else {
+        document.getElementById("loginBox").style.display = "block";
+    }
 };
 
 // --- AUTHENTICATION ---
@@ -137,49 +192,49 @@ async function login() {
     const passVal = document.getElementById("pass").value;
 
     try {
-        const res = await fetch("http://localhost:5000/login", {
-            method: "POST", 
+        const res = await fetch("/login", {
+            method: "POST",
             headers: {"Content-Type":"application/json"},
             body: JSON.stringify({ user: userVal, pass: passVal })
         });
         const d = await res.json();
-        if(d.status === "success") { 
-            localStorage.setItem("logged", "true"); 
-            showDashboard(); 
-        } else { 
-            alert("Invalid Credentials (admin / 1234)"); 
+        if(d.status === "success") {
+            localStorage.setItem("logged", "true");
+            showDashboard();
+        } else {
+            alert("Invalid Credentials");
         }
     } catch (e) {
-        alert("Server not found. Ensure app.py is running.");
+        alert("Server connection lost. Ensure app.py is running.");
     }
 }
 
-function logout() { 
-    localStorage.removeItem("logged"); 
-    window.location.reload(); 
+function logout() {
+    localStorage.removeItem("logged");
+    window.location.reload();
 }
 
 function showDashboard() {
     document.getElementById("loginBox").style.display = "none";
     document.getElementById("dashboard").style.display = "block";
-    loadData(); 
+    loadData();
     setInterval(loadData, 3000);
 }
 
 // --- MODAL LOGIC ---
-function closeModal() { 
-    document.getElementById("modal").style.display = "none"; 
+function closeModal() {
+    document.getElementById("modal").style.display = "none";
     document.querySelector(".modal-content").classList.remove("modal-large");
 }
 
 function showDetails(type) {
     const b = document.getElementById("modal-body");
     document.getElementById("modal-title").innerText = type.toUpperCase() + " DETAILS";
-    document.getElementById("modal").style.display = "block"; 
+    document.getElementById("modal").style.display = "block";
     b.innerHTML = "";
-    
+
     if(type === 'sensors') {
-        let s = new Set(); 
+        let s = new Set();
         rawData.forEach(x => { if(x.data.sensor_id) s.add(`<b>${x.data.sensor_id}</b> (${x.data.location})`); });
         s.size > 0 ? s.forEach(v => b.innerHTML += `<p>📡 ${v}</p>`) : b.innerHTML = "No sensors active.";
     } else {
@@ -220,7 +275,12 @@ function enlargeChart() {
 }
 
 function filterGraph(idx) {
-    chart.data.datasets.forEach((ds, i) => ds.hidden = (i !== idx));
+    let allHidden = true;
+    chart.data.datasets.forEach((ds, i) => {
+        if (i === idx) ds.hidden = !ds.hidden;
+        if (!ds.hidden) allHidden = false;
+    });
+    if (allHidden) chart.data.datasets.forEach((ds) => ds.hidden = false);
     chart.update();
 }
 
@@ -228,15 +288,14 @@ function filterGraph(idx) {
 async function loadData() {
     try {
         const [chainRes, aiRes] = await Promise.all([
-            fetch("http://localhost:5000/chain"), 
-            fetch("http://localhost:5000/predict")
+            fetch("/chain"),
+            fetch("/predict")
         ]);
-        const data = await chainRes.json(); 
+        const data = await chainRes.json();
         const aiData = await aiRes.json();
-        
+
         rawData = data.chain.filter(b => typeof b.data === 'object');
-        
-        // Update Stats
+
         document.getElementById('total-sensors').innerText = data.total_sensors;
         document.getElementById('active-alerts').innerText = data.active_alerts;
         document.getElementById('p-temperature').innerText = aiData.temperature || "...";
@@ -247,50 +306,30 @@ async function loadData() {
         let cur = {t:"--", l:"--", e:"--"};
 
         rawData.forEach(b => {
+            const time = new Date(b.timestamp * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            lbls.push(time);
 
-        const time = new Date(b.timestamp * 1000)
-        .toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
+            if(b.data.type === "temperature") { cur.t = b.data.value; tVal.push(b.data.value); } else { tVal.push(null); }
+            if(b.data.type === "light") { cur.l = b.data.value; lVal.push(b.data.value); } else { lVal.push(null); }
+            if(b.data.type === "energy") { cur.e = b.data.value; eVal.push(b.data.value); } else { eVal.push(null); }
+        });
 
-        lbls.push(time);
-
-        if(b.data.type === "temperature") {
-            cur.t = b.data.value;
-            tVal.push(b.data.value);
-            } else {
-            tVal.push(null);
-        }
-
-        if(b.data.type === "light") {
-            cur.l = b.data.value;
-            lVal.push(b.data.value);
-        } else {
-            lVal.push(null);
-        }
-
-        if(b.data.type === "energy") {
-            cur.e = b.data.value;
-            eVal.push(b.data.value);
-        } else {
-            eVal.push(null);
-        }
-    });
-
-        document.getElementById("temperature").innerText = cur.t; 
-        document.getElementById("light").innerText = cur.l; 
+        document.getElementById("temperature").innerText = cur.t;
+        document.getElementById("light").innerText = cur.l;
         document.getElementById("energy").innerText = cur.e;
 
         if(!chart) {
             chart = new Chart(document.getElementById("chart"), {
                 type: "line",
-                data: { 
-                    labels: lbls, 
+                data: {
+                    labels: lbls,
                     datasets: [
-                        { label: "Temp", data: tVal, borderColor: "#38bdf8", tension: 0.3 },
-                        { label: "Light", data: lVal, borderColor: "#fbbf24", tension: 0.3 },
-                        { label: "Energy", data: eVal, borderColor: "#22c55e", tension: 0.3 }
+                        { label: "Temp", data: tVal, borderColor: "#38bdf8", tension: 0.3, spanGaps: true },
+                        { label: "Light", data: lVal, borderColor: "#fbbf24", tension: 0.3, spanGaps: true },
+                        { label: "Energy", data: eVal, borderColor: "#22c55e", tension: 0.3, spanGaps: true }
                     ]
                 },
-                options: { 
+                options: {
                     responsive: true, maintainAspectRatio: false,
                     plugins: { legend: { labels: { color: 'white' } } },
                     scales: { y: { ticks: { color: 'white' } }, x: { ticks: { color: 'white' } } }
