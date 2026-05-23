@@ -2,57 +2,155 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blockchain Logs</title>
     <style>
-        body { font-family: 'Segoe UI', sans-serif; background-color: #0d1425; color: white; text-align: center; margin: 0; }
-        .top-nav { background-color: #0d1425; padding: 15px; border-bottom: 2px solid #38bdf8; margin-bottom: 20px; display: flex; justify-content: center; gap: 25px; align-items: center; }
+        body { 
+            font-family: 'Segoe UI', sans-serif; 
+            background-color: #0d1425; 
+            color: white; 
+            text-align: center; 
+            margin: 0; 
+            padding: 0;
+        }
+        .top-nav { 
+            background-color: #0d1425; 
+            padding: 15px; 
+            border-bottom: 2px solid #38bdf8; 
+            margin-bottom: 20px; 
+            display: flex; 
+            justify-content: center; 
+            gap: 25px; 
+            align-items: center; 
+            flex-wrap: wrap; /* Allows nav buttons to wrap on narrow devices */
+        }
         .nav-link { color: #38bdf8; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; }
         .logout-btn { color: #ef4444; cursor: pointer; border: 1px solid #ef4444; padding: 5px 12px; border-radius: 5px; font-size: 0.8rem; }
-        table { width: 95%; margin: 20px auto; border-collapse: collapse; background: #1e293b; }
-        th, td { padding: 15px; border: 1px solid #334155; text-align: left; font-size: 0.85rem; }
+        
+        h2 {
+            font-size: clamp(1.4rem, 4vw, 2rem);
+            margin: 20px 10px;
+        }
+
+        /* 2. ADDED: This container handles smooth scrolling on mobile phones */
+        .table-container {
+            width: 95%;
+            max-width: 1100px;
+            margin: 20px auto;
+            background: #1e293b;
+            border-radius: 12px;
+            border: 1px solid #334155;
+            padding: 5px;
+            box-sizing: border-box;
+            overflow-x: auto; /* Adds isolated side-scrolling if the screen is too narrow */
+        }
+
+        /* CHANGED: Made the layout fluid within its parent block */
+        table { 
+            width: 100%; 
+            border-collapse: collapse; 
+            background: #1e293b;
+            min-width: 650px; /* Guarantees data columns stay neat and highly readable */
+        }
+        th, td { 
+            padding: 12px 10px; 
+            border: 1px solid #334155; 
+            text-align: left; 
+            font-size: clamp(0.75rem, 2.5vw, 0.85rem); /* Dynamic text scaling */
+            word-break: break-all; /* Stops long hashes from pushing elements off layout boundaries */
+        }
         th { color: #38bdf8; background: #0f172a; }
+        tr:hover { background-color: #243147; }
     </style>
 </head>
 <body>
+
     <nav class="top-nav">
-        <a href="index.html" class="nav-link">Dashboard</a>
-        <a href="logs.html" class="nav-link" style="color:white">View Logs</a>
+        <a href="/" class="nav-link">Dashboard</a>
+        <a href="/logs" class="nav-link" style="color:white; border-bottom: 2px solid #38bdf8;">View Logs</a>
         <span class="logout-btn" onclick="logout()">LOGOUT</span>
     </nav>
 
     <h2>Campus Blockchain Ledger</h2>
 
-    <table id="logTable">
-        <thead>
-            <tr><th>Block #</th><th>Sensor ID</th><th>Type</th><th>Value</th><th>Status</th><th>Alert ID</th><th>Hash</th></tr>
-        </thead>
-        <tbody></tbody>
-    </table>
+    <div class="table-container">
+        <table id="logTable">
+            <thead>
+                <tr>
+                    <th style="width: 10%;">Block #</th>
+                    <th style="width: 13%;">Sensor ID</th>
+                    <th style="width: 12%;">Type</th>
+                    <th style="width: 10%;">Value</th>
+                    <th style="width: 13%;">Status</th>
+                    <th style="width: 12%;">Alert ID</th>
+                    <th style="width: 30%;">Hash</th>
+                </tr>
+            </thead>
+            <tbody></tbody>
+        </table>
+    </div>
 
     <script>
-        window.onload = () => { if(localStorage.getItem("logged") !== "true") window.location.href="index.html"; else loadLogs(); };
-        function logout() { localStorage.removeItem("logged"); window.location.href="index.html"; }
+    window.onload = () => {
+        if (localStorage.getItem("logged") !== "true") {
+            window.location.href = "/"; 
+        } else {
+            loadLogs();
+            setInterval(loadLogs, 5000);
+        }
+    };
 
-        async function loadLogs() {
-            const res = await fetch("http://localhost:5000/chain");
+    function logout() {
+        localStorage.removeItem("logged");
+        window.location.href = "/"; 
+    }
+
+    async function loadLogs() {
+        try {
+            const res = await fetch("/chain");
             const data = await res.json();
             const tbody = document.querySelector("#logTable tbody");
-            tbody.innerHTML = "";
+
+            tbody.innerHTML = ""; 
+
             data.chain.reverse().forEach(b => {
-                if(typeof b.data !== 'object') return;
-                const isAlert = b.data.status === 'Alert';
-                tbody.innerHTML += `<tr>
-                    <td>#${b.index}</td>
-                    <td>${b.data.sensor_id}</td>
-                    <td>${b.data.type}</td>
-                    <td>${b.data.value}</td>
-                    <td style="color:${isAlert ? '#ef4444' : '#22c55e'}">${b.data.status}</td>
-                    <td style="color:${isAlert ? '#ef4444' : 'inherit'}">${b.data.alert_id}</td>
-                    <td style="font-family:monospace; font-size:0.7rem; color:#64748b">${b.hash.substring(0,20)}...</td>
-                </tr>`;
+                const row = document.createElement('tr');
+
+                // Handles Genesis Block structural output safely
+                if (b.index === 0) {
+                    row.innerHTML = `
+                        <td><strong>#${b.index}</strong></td>
+                        <td colspan="5" style="text-align:center; color:#64748b; font-style: italic;">${b.data}</td>
+                        <td style="font-family:monospace; font-size:0.75rem; color:#64748b" title="${b.hash}">
+                            ${b.hash.substring(0,16)}...
+                        </td>
+                    `;
+                } else {
+                    const sensorData = b.data || {};
+                    const isAlert = sensorData.status === 'Alert';
+
+                    row.innerHTML = `
+                        <td><strong>#${b.index}</strong></td>
+                        <td style="color:#38bdf8; font-weight: 500;">${sensorData.sensor_id || 'N/A'}</td>
+                        <td><i>${sensorData.type || 'N/A'}</i></td>
+                        <td>${sensorData.value !== undefined ? sensorData.value : '0'}</td>
+                        <td style="color:${isAlert ? '#ef4444' : '#22c55e'}; font-weight: bold;">
+                            ${sensorData.status || 'Normal'}
+                        </td>
+                        <td style="color:${isAlert ? '#ef4444' : 'inherit'}">
+                            ${sensorData.alert_id || 'N/A'}
+                        </td>
+                        <td style="font-family:monospace; font-size:0.75rem; color:#94a3b8" title="${b.hash}">
+                            ${b.hash.substring(0,16)}...
+                        </td>
+                    `;
+                }
+                tbody.appendChild(row);
             });
+        } catch (err) {
+            console.error("Database or network server is offline.", err);
         }
-        setInterval(loadLogs, 5000);
+    }
     </script>
 </body>
 </html>
