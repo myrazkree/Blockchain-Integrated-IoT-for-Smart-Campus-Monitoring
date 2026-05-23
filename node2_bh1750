@@ -8,7 +8,7 @@ BH1750 lightMeter;
 const char* ssid = "mirae";
 const char* password = "miraena13";
 
-const char* server = "http://10.149.88.207:5000/add_data";
+const char* server = "https://amirazkree.pythonanywhere.com/add_data";
 
 void setup() {
 
