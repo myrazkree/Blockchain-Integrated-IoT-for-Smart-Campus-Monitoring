@@ -9,52 +9,69 @@ DHT dht(DHTPIN, DHTTYPE);
 
 const char* ssid = "mirae";
 const char* password = "miraena13";
-
-const char* server = "http://10.149.88.207:5000/add_data";
+const char* server = "https://amirazkree.pythonanywhere.com/add_data";
 
 void setup() {
-
   Serial.begin(115200);
-
+  WiFi.begin(ssid, password);
   dht.begin();
 
-  WiFi.begin(ssid, password);
-
+  Serial.print("Connecting to WiFi");
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
+  Serial.println("\nWiFi Connected!");
+}
 
-  Serial.println("WiFi Connected");
+void sendData(String id, String loc, String type, float val, float threshold) {
+  if (WiFi.status() == WL_CONNECTED) {
+    HTTPClient http;
+    http.begin(server);
+    http.addHeader("Content-Type", "application/json");
+
+    String status = (val > threshold) ? "Alert" : "Normal";
+
+    String json = "{";
+    json += "\"sensor_id\":\"" + id + "\",";
+    json += "\"location\":\"" + loc + "\",";
+    json += "\"type\":\"" + type + "\",";
+    json += "\"value\":" + String(val, 2) + ","; // Formats to 2 decimal places cleanly
+    json += "\"status\":\"" + status + "\"}";
+
+    int httpResponseCode = http.POST(json);
+    Serial.print("Sent ");
+    Serial.print(type);
+    Serial.print(" | Response Code: ");
+    Serial.println(httpResponseCode); // Prints 200 if PythonAnywhere saved it successfully
+    
+    http.end();
+  } else {
+    Serial.println("WiFi Disconnected. Skipped sending.");
+  }
 }
 
 void loop() {
-
+  // 1. Read real temperature from DHT22
   float temp = dht.readTemperature();
 
+  // Safety Check: Only send temperature if the sensor hardware is actually connected
   if (!isnan(temp)) {
-
-    HTTPClient http;
-
-    http.begin(server);
-
-    http.addHeader("Content-Type", "application/json");
-
-    String status = (temp > 30.0) ? "Alert" : "Normal";
-
-    String json =
-      "{\"sensor_id\":\"S001\","
-      "\"location\":\"Block A\","
-      "\"type\":\"temperature\","
-      "\"value\":" + String(temp) + ","
-      "\"status\":\"" + status + "\"}";
-
-    int response = http.POST(json);
-
-    Serial.println(response);
-
-    http.end();
+    Serial.print("Current Temp: ");
+    Serial.println(temp);
+    sendData("S001", "Block A", "temperature", temp, 30.0);
+  } else {
+    Serial.println("Warning: Failed to read from DHT22 sensor!");
   }
+  delay(2000);
 
-  delay(5000);
+  // 2. Simulated Light Sensor data (Disable or adjust if Node 2 is powered on!)
+  sendData("S002_SIM", "Block B", "light", random(200, 800), 700.0);
+  delay(2000);
+
+  // 3. Simulated Energy Sensor data (Disable or adjust if Node 3 is powered on!)
+  sendData("S003_SIM", "Block C", "energy", random(10, 50), 45.0);
+  
+  // Wait 15 seconds before starting the next loop cycle
+  delay(15000);
 }
