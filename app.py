@@ -70,7 +70,7 @@ def add_data():
 
     # 1. FIXED: Look up the last entry written to the database to find the parent hash
     last_record = SensorData.query.order_by(SensorData.id.desc()).first()
-    
+
     if last_record:
         prev_hash = last_record.current_hash
         next_idx = last_record.id + 1
@@ -124,7 +124,7 @@ def chain():
     # Base anchor point initialization
     synchronized_chain = [{
         "index": 0,
-        "timestamp": 1779466552.4295905, 
+        "timestamp": 1779466552.4295905,
         "data": "Genesis Block",
         "previous_hash": "0",
         "hash": "B2282d6c00dc5a4319b71f71723c748d6bbc14fb1c3a10cf8fca25510051"
@@ -188,6 +188,33 @@ def predict():
 
     return jsonify(predictions)
 
+@app.route('/simulate_energy')
+def simulate_energy():
+
+    sample_values = [
+        4.9,4.8
+    ]
+
+    for val in sample_values:
+
+        current_time = time()
+
+        new_data = SensorData(
+            sensor_id="S003",
+            location="Block C",
+            type="energy",
+            value=val,
+            status="Normal",
+            timestamp=current_time,
+            current_hash="simulation",
+            previous_hash="simulation"
+        )
+
+        db.session.add(new_data)
+
+    db.session.commit()
+
+    return jsonify({"message":"Energy simulation inserted"})
 
 # ---------------- STARTUP ----------------
 with app.app_context():
