@@ -191,13 +191,38 @@ def predict():
 @app.route('/simulate_energy')
 def simulate_energy():
 
-    sample_values = [
-        4.9,4.8
-    ]
+    sample_values = [4.9, 4.9, 4.9, 4.9, 4.8, 4.8, 4.8, 4.9, 4.9, 4.8]
 
     for val in sample_values:
 
         current_time = time()
+
+        last_record = SensorData.query.order_by(SensorData.id.desc()).first()
+
+        if last_record:
+            prev_hash = last_record.current_hash
+            next_idx = last_record.id + 1
+        else:
+            prev_hash = "0"
+            next_idx = 1
+
+        payload = {
+            "sensor_id": "S003",
+            "location": "Block C",
+            "type": "energy",
+            "value": val,
+            "status": "Normal",
+            "alert_id": "N/A"
+        }
+
+        block_string = json.dumps({
+            "index": next_idx,
+            "timestamp": current_time,
+            "data": payload,
+            "previous_hash": prev_hash
+        }, sort_keys=True).encode()
+
+        calculated_hash = hashlib.sha256(block_string).hexdigest()
 
         new_data = SensorData(
             sensor_id="S003",
@@ -206,15 +231,17 @@ def simulate_energy():
             value=val,
             status="Normal",
             timestamp=current_time,
-            current_hash="simulation",
-            previous_hash="simulation"
+            current_hash=calculated_hash,
+            previous_hash=prev_hash
         )
 
         db.session.add(new_data)
 
     db.session.commit()
 
-    return jsonify({"message":"Energy simulation inserted"})
+    return jsonify({
+        "message": "Energy simulation inserted into blockchain"
+    })
 
 # ---------------- STARTUP ----------------
 with app.app_context():
