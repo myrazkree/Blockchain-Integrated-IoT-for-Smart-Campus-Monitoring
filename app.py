@@ -2,7 +2,7 @@
 # FILE INFORMATION
 # ==========================================================
 # File Name:
-# dashboard.html
+# app.py
 #
 # Project:
 # Blockchain Integrated IoT System for Smart Campus Monitoring
