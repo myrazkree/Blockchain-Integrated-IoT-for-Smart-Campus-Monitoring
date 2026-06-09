@@ -502,3 +502,52 @@ with app.app_context():
 # ==========================================================
 if __name__ == "__main__":
     app.run()
+
+# ==========================================================
+# FUTURE ENHANCEMENTS
+# ==========================================================
+#
+# 1. Blockchain consensus validation.
+# 2. Multi-user authentication.
+# 3. Role-based access control.
+# 4. AI anomaly detection.
+# 5. Cloud deployment support.
+# 6. MQTT integration.
+# 7. Mobile application dashboard.
+# 8. Real-time push notifications.
+#
+# ========================================================== 
+
+# ==========================================================
+# ACADEMIC CONTRIBUTION
+# ==========================================================
+#
+# This dashboard demonstrates the
+# integration of:
+# 
+# 1. Internet of Things (IoT)
+# 2. Blockchain Technology
+# 3. Artificial Intelligence
+# 4. Web-Based Monitoring Systems
+# 
+# to provide secure and intelligent
+# Smart Campus monitoring.
+#
+# ========================================================== -
+
+# ==========================================================
+# COPYRIGHT NOTICE
+# ==========================================================
+#
+# © 2026 Nur Amira Najwa binti Zulkhibree
+#
+# This source code was developed for
+# academic purposes under the project:
+#
+# "Blockchain-Integrated IoT System for
+# Smart Campus Monitoring"
+#
+# Faculty of Computer Science and Information Technology
+# Universiti Malaysia Sarawak (UNIMAS)
+#
+# ========================================================== 
