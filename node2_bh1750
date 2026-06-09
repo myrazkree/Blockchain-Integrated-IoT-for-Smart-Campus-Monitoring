@@ -1,25 +1,66 @@
+/* ==========================================================
+   FILE INFORMATION
+   ==========================================================
+   File Name:
+   node2_bh1750.ino
+
+   Project:
+   Blockchain Integrated IoT System for Smart Campus Monitoring
+
+   Description:
+   This ESP32 program reads ambient light intensity using
+   the BH1750 sensor via I2C communication and sends the
+   data to a cloud server in JSON format using HTTP POST.
+
+   Key Functions:
+   - WiFi connection setup
+   - BH1750 light sensor initialization
+   - Lux (light intensity) reading
+   - JSON data formatting
+   - HTTP POST transmission to server
+
+   Developer:
+   Nur Amira Najwa binti Zulkhibree
+
+   Supervisor:
+   Associate Professor Dr. Halikul bin Lenando
+
+   Last Updated:
+   10 June 2026
+   ========================================================== */
+
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <Wire.h>
 #include <BH1750.h>
 
+// ----------------------------
+// Light Sensor Initialization
+// ----------------------------
 BH1750 lightMeter;
 
+// ----------------------------
+// WiFi and Server Credentials
+// ----------------------------
 const char* ssid = "mirae";
 const char* password = "miraena13";
-
 const char* server = "https://amirazkree.pythonanywhere.com/add_data";
 
+// ----------------------------
+// Setup Function
+// Runs once at startup
+// ----------------------------
 void setup() {
 
-  Serial.begin(115200);
+  Serial.begin(115200);         // Start serial monitor for debugging
 
-  Wire.begin();
+  Wire.begin();                 // Initialize I2C communication
 
-  lightMeter.begin();
+  lightMeter.begin();           // Initialize BH1750 sensor
 
-  WiFi.begin(ssid, password);
+  WiFi.begin(ssid, password);   // Connect to WiFi network
 
+  // Wait until WiFi is connected
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
@@ -28,18 +69,25 @@ void setup() {
   Serial.println("WiFi Connected");
 }
 
+// ----------------------------
+// Main Loop
+// Reads light sensor and sends data to server
+// ----------------------------
 void loop() {
 
+  // Read light intensity in lux
   float lux = lightMeter.readLightLevel();
-
+  
+  // Create HTTP client object
   HTTPClient http;
 
-  http.begin(server);
-
+  http.begin(server); // Connect to server endpoint
   http.addHeader("Content-Type", "application/json");
 
+  // Determine light status based on threshold
   String status = (lux > 700.0) ? "Alert" : "Normal";
 
+  // Build JSON payload
   String json =
     "{\"sensor_id\":\"S002\","
     "\"location\":\"Block B\","
@@ -47,11 +95,14 @@ void loop() {
     "\"value\":" + String(lux) + ","
     "\"status\":\"" + status + "\"}";
 
+  // Send HTTP POST request
   int response = http.POST(json);
 
+  // Print server response code
   Serial.println(response);
 
-  http.end();
+  http.end();   // Close connection
 
+  // Wait 5 seconds before next reading
   delay(5000);
 }
