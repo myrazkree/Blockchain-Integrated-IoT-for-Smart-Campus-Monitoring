@@ -55,10 +55,29 @@ Hardware:
 
 <!DOCTYPE html>
 <html lang="en">
+    
+<!-- ==========================================================
+HEAD SECTION
+==========================================================
+Contains metadata, page title, and internal CSS styling.
+========================================================== -->
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blockchain Logs</title>
+   
+ <!-- ==========================================================
+USER INTERFACE STYLING (CSS)
+==========================================================
+Defines UI design for:
+
+- Navigation bar
+- Table layout
+- Status indicators
+- Responsive container
+========================================================== -->
+
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -134,7 +153,16 @@ Hardware:
         }
     </style>
 </head>
+
+<!-- ==========================================================
+MAIN APPLICATION BODY
+========================================================== -->
+
 <body>
+
+<!-- ==========================================================
+NAVIGATION MENU
+========================================================== -->
 
     <nav class="top-nav">
         <a href="/" class="nav-link">Dashboard</a>
@@ -142,7 +170,15 @@ Hardware:
         <span class="logout-btn" onclick="logout()">LOGOUT</span>
     </nav>
 
+<!-- ==========================================================
+PAGE HEADER
+========================================================== -->
+
     <h2>Campus Blockchain Ledger</h2>
+
+<!-- ==========================================================
+BLOCKCHAIN TABLE DISPLAY
+========================================================== -->
 
     <div class="table-container">
         <table id="logTable">
@@ -162,7 +198,12 @@ Hardware:
         </table>
     </div>
 
+<!-- ==========================================================
+SCRIPT SECTION (LOGIC + DATA FETCHING)
+========================================================== -->
+
     <script>
+    
     window.onload = () => {
         if (localStorage.getItem("logged") !== "true") {
             window.location.href = "/";
@@ -177,6 +218,13 @@ Hardware:
         window.location.href = "/";
     }
 
+/* ==========================================================
+BLOCKCHAIN DATA FETCHING MODULE
+==========================================================
+Fetches ledger data from backend API (/chain)
+and renders it into HTML table format.
+========================================================== */
+
     async function loadLogs() {
         try {
             const res = await fetch("/chain");
@@ -188,7 +236,10 @@ Hardware:
             data.chain.reverse().forEach(b => {
                 const row = document.createElement('tr');
 
-                // FIXED: Handles Genesis Block structural output using the corrected hash key
+/* ==========================================================
+GENESIS BLOCK HANDLING
+========================================================== */
+
                 if (b.index === 0) {
                     const genesisHash = b.hash || "B2282d6c00dc5a4319b71f71723c748d6bbc14fb1c3a10cf8fca25510051";
                     row.innerHTML = `
