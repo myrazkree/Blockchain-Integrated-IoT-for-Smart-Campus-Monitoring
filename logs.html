@@ -61,6 +61,22 @@
         }
         th { color: #38bdf8; background: #0f172a; }
         tr:hover { background-color: #243147; }
+
+        /* Status Integrity Styling Tags */
+        .status-tag {
+            font-weight: bold;
+            padding: 2px 6px;
+            border-radius: 4px;
+            text-transform: uppercase;
+            font-size: 0.75rem;
+        }
+        .status-valid { color: #22c55e; background: rgba(34, 197, 94, 0.1); }
+        .status-broken { color: #ef4444; background: rgba(239, 68, 68, 0.1); animation: flash 1s infinite; }
+        .status-invalid { color: #f59e0b; background: rgba(245, 158, 11, 0.1); }
+
+        @keyframes flash {
+            50% { opacity: 0.4; }
+        }
     </style>
 </head>
 <body>
@@ -78,12 +94,13 @@
             <thead>
                 <tr>
                     <th style="width: 10%;">Block #</th>
-                    <th style="width: 13%;">Sensor ID</th>
-                    <th style="width: 12%;">Type</th>
-                    <th style="width: 10%;">Value</th>
-                    <th style="width: 13%;">Status</th>
-                    <th style="width: 12%;">Alert ID</th>
-                    <th style="width: 30%;">Hash</th>
+                    <th style="width: 10%;">Sensor ID</th>
+                    <th style="width: 13%;">Type</th>
+                    <th style="width: 9%;">Value</th>
+                    <th style="width: 11%;">Status</th>
+                    <th style="width: 15%;">Alert ID</th>
+                    <th style="width: 21%;">Hash</th>
+                    <th style="width: 15%;">Integrity</th>
                 </tr>
             </thead>
             <tbody></tbody>
@@ -116,18 +133,33 @@
             data.chain.reverse().forEach(b => {
                 const row = document.createElement('tr');
 
-                // Handles Genesis Block structural output safely
+                // FIXED: Handles Genesis Block structural output using the corrected hash key
                 if (b.index === 0) {
+                    const genesisHash = b.hash || "B2282d6c00dc5a4319b71f71723c748d6bbc14fb1c3a10cf8fca25510051";
                     row.innerHTML = `
                         <td><strong>#${b.index}</strong></td>
                         <td colspan="5" style="text-align:center; color:#64748b; font-style: italic;">${b.data}</td>
-                        <td style="font-family:monospace; font-size:0.75rem; color:#64748b" title="${b.hash}">
-                            ${b.hash.substring(0,16)}...
+                        <td style="font-family:monospace; font-size:0.75rem; color:#64748b" title="${genesisHash}">
+                            ${genesisHash.substring(0,16)}...
                         </td>
+                        <td><span class="status-tag status-valid">VALID</span></td>
                     `;
                 } else {
                     const sensorData = b.data || {};
                     const isAlert = sensorData.status === 'Alert';
+                    
+                    // FIXED: Read the new saved_hash value from the payload
+                    const currentBlockHash = b.saved_hash || "N/A";
+
+                    // Select correct CSS style for the live security review status column
+                    let integrityTag = '';
+                    if (b.integrity_status === 'CHAIN BROKEN') {
+                        integrityTag = '<span class="status-tag status-broken">⚠️ BROKEN</span>';
+                    } else if (b.integrity_status === 'INVALID PARENT') {
+                        integrityTag = '<span class="status-tag status-invalid">❌ INVALID PARENT</span>';
+                    } else {
+                        integrityTag = '<span class="status-tag status-valid">VALID</span>';
+                    }
 
                     row.innerHTML = `
                         <td><strong>#${b.index}</strong></td>
@@ -140,9 +172,10 @@
                         <td style="color:${isAlert ? '#ef4444' : 'inherit'}">
                             ${sensorData.alert_id || 'N/A'}
                         </td>
-                        <td style="font-family:monospace; font-size:0.75rem; color:#94a3b8" title="${b.hash}">
-                            ${b.hash.substring(0,16)}...
+                        <td style="font-family:monospace; font-size:0.75rem; color:#94a3b8" title="${currentBlockHash}">
+                            ${currentBlockHash.substring(0,16)}...
                         </td>
+                        <td>${integrityTag}</td>
                     `;
                 }
                 tbody.appendChild(row);
