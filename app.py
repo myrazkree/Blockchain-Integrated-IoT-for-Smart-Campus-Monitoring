@@ -115,7 +115,6 @@ def add_data():
 
     return jsonify({"message": "Data saved securely inside block ledger", "hash": calculated_hash}), 200
 
-
 @app.route('/chain', methods=['GET'])
 def chain():
     unique_sensors = db.session.query(SensorData.sensor_id).distinct().count()
@@ -127,11 +126,15 @@ def chain():
         "timestamp": 1779466552.4295905,
         "data": "Genesis Block",
         "previous_hash": "0",
-        "hash": "B2282d6c00dc5a4319b71f71723c748d6bbc14fb1c3a10cf8fca25510051"
+        "hash": "B2282d6c00dc5a4319b71f71723c748d6bbc14fb1c3a10cf8fca25510051",
+        "integrity_status": "VALID"
     }]
 
     try:
         db_records = SensorData.query.order_by(SensorData.id.asc()).all()
+
+        # Track the expected previous hash as we iterate to check for pointer breaks
+        expected_prev_hash = "B2282d6c00dc5a4319b71f71723c748d6bbc14fb1c3a10cf8fca25510051"
 
         for idx, record in enumerate(db_records, start=1):
             payload = {
@@ -143,14 +146,39 @@ def chain():
                 "alert_id": f"ALRT-{int(record.timestamp)}" if record.status == "Alert" else "N/A"
             }
 
-            # FIXED: Instead of calculating blindly, we now pull the authentic historical hashes saved right from the database
+            # RE-COMPUTE THE RUNTIME HASH EXACTLY LIKE THE INGESTION TIER DOES
+            block_string = json.dumps({
+                "index": idx,
+                "timestamp": record.timestamp,
+                "data": payload,
+                "previous_hash": record.previous_hash
+            }, sort_keys=True).encode()
+
+            recomputed_runtime_hash = hashlib.sha256(block_string).hexdigest()
+
+            # INTEGRITY CHECK LOGIC (Matches Table 5.3.2.1)
+            integrity_status = "VALID"
+
+            # Check 1: Did the current block data change? (Triggers CHAIN BROKEN)
+            if recomputed_runtime_hash != record.current_hash:
+                integrity_status = "CHAIN BROKEN"
+
+            # Check 2: Did the previous block break, corrupting this block's link? (Triggers INVALID PARENT)
+            elif record.previous_hash != expected_prev_hash:
+                integrity_status = "INVALID PARENT"
+
             synchronized_chain.append({
                 "index": idx,
                 "timestamp": record.timestamp,
                 "data": payload,
                 "previous_hash": record.previous_hash,
-                "hash": record.current_hash
+                "saved_hash": record.current_hash,
+                "runtime_hash": recomputed_runtime_hash,
+                "integrity_status": integrity_status
             })
+
+            # Pass the authentic saved hash onward to validate the next block link pointer
+            expected_prev_hash = record.current_hash
 
     except Exception as e:
         print(f"Sync error parsing SQL to Block Array: {e}")
@@ -160,7 +188,6 @@ def chain():
         "total_sensors": unique_sensors,
         "active_alerts": active_alerts
     })
-
 
 @app.route('/predict', methods=['GET'])
 def predict():
