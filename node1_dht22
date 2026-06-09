@@ -1,37 +1,87 @@
+/* ==========================================================
+   FILE INFORMATION
+   ==========================================================
+   File Name:
+   node1_dht22.ino
+
+   Project:
+   Blockchain Integrated IoT System for Smart Campus Monitoring
+
+   Description:
+   This ESP32 program reads data from a DHT22 temperature sensor
+   and simulates additional sensor values (light & energy).
+   It sends all data to a cloud server using HTTP POST in JSON format.
+
+   Key Functions:
+   - Wi-Fi connection setup
+   - DHT22 temperature reading
+   - JSON data formatting
+   - HTTP POST request to server
+   - Simulated sensor data generation
+
+   Developer:
+   Nur Amira Najwa binti Zulkhibree
+
+   Supervisor:
+   Associate Professor Dr. Halikul bin Lenando
+
+   Last Updated:
+   10 June 2026
+   ========================================================== */
+   
 #include <WiFi.h>
 #include <HTTPClient.h>
 #include <DHT.h>
 
-#define DHTPIN 4
-#define DHTTYPE DHT22
+#define DHTPIN 4         // GPIO pin connected to DHT22
+#define DHTTYPE DHT22    // Sensor type
 
 DHT dht(DHTPIN, DHTTYPE);
 
+// ----------------------------
+// WiFi and Server Credentials
+// ----------------------------
 const char* ssid = "mirae";
 const char* password = "miraena13";
 const char* server = "https://amirazkree.pythonanywhere.com/add_data";
 
+// ----------------------------
+// Setup Function
+// Runs once at startup
+// ----------------------------
 void setup() {
-  Serial.begin(115200);
-  WiFi.begin(ssid, password);
-  dht.begin();
+  Serial.begin(115200);         // Start serial monitor for debugging
+  WiFi.begin(ssid, password);   // Connect to WiFi network
+  dht.begin();                  // Initialize DHT sensor
 
   Serial.print("Connecting to WiFi");
+  
+  // Wait until WiFi is connected
   while (WiFi.status() != WL_CONNECTED) {
     delay(500);
     Serial.print(".");
   }
+  
   Serial.println("\nWiFi Connected!");
 }
 
+// ----------------------------
+// Function: sendData()
+// Purpose: Send sensor data to server in JSON format
+// ----------------------------
 void sendData(String id, String loc, String type, float val, float threshold) {
+    
+  // Check WiFi connection before sending data
   if (WiFi.status() == WL_CONNECTED) {
+      
     HTTPClient http;
-    http.begin(server);
+    http.begin(server); // Connect to server endpoint
     http.addHeader("Content-Type", "application/json");
 
+    // Determine sensor status based on threshold
     String status = (val > threshold) ? "Alert" : "Normal";
 
+    // Build JSON payload manually
     String json = "{";
     json += "\"sensor_id\":\"" + id + "\",";
     json += "\"location\":\"" + loc + "\",";
@@ -39,26 +89,39 @@ void sendData(String id, String loc, String type, float val, float threshold) {
     json += "\"value\":" + String(val, 2) + ","; // Formats to 2 decimal places cleanly
     json += "\"status\":\"" + status + "\"}";
 
+    // Send HTTP POST request
     int httpResponseCode = http.POST(json);
+    
+    // Debug response from server
     Serial.print("Sent ");
     Serial.print(type);
     Serial.print(" | Response Code: ");
     Serial.println(httpResponseCode); // Prints 200 if PythonAnywhere saved it successfully
     
-    http.end();
+    http.end(); // Close HTTP connection
+    
   } else {
     Serial.println("WiFi Disconnected. Skipped sending.");
   }
 }
 
+// ----------------------------
+// Main Loop
+// Continuously reads and sends data
+// ----------------------------
+
 void loop() {
-  // 1. Read real temperature from DHT22
+    
+  // 1. Read real temperature from DHT22 sensor
   float temp = dht.readTemperature();
 
+  // Validate sensor reading before sending
   // Safety Check: Only send temperature if the sensor hardware is actually connected
   if (!isnan(temp)) {
     Serial.print("Current Temp: ");
     Serial.println(temp);
+    
+  // Send real temperature data
     sendData("S001", "Block A", "temperature", temp, 30.0);
   } else {
     Serial.println("Warning: Failed to read from DHT22 sensor!");
@@ -72,6 +135,6 @@ void loop() {
   // 3. Simulated Energy Sensor data (Disable or adjust if Node 3 is powered on!)
   sendData("S003_SIM", "Block C", "energy", random(10, 50), 45.0);
   
-  // Wait 15 seconds before starting the next loop cycle
+  // Wait 15 seconds before starting the next loop cycle (reduces server spam & stabilizes readings)
   delay(15000);
 }
