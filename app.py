@@ -1,4 +1,59 @@
 # ==========================================================
+# FILE INFORMATION
+# ==========================================================
+# File Name:
+# dashboard.html
+#
+# Project:
+# Blockchain-Integrated IoT System for Smart Campus Monitoring
+#
+# Developer:
+# Nur Amira Najwa binti Zulkhibree
+#
+# Supervisor:
+# Associate Professor Dr. Halikul bin Lenando
+#
+# Purpose:
+# Provides administrator dashboard for monitoring
+# IoT sensor data, blockchain records, alerts,
+# AI predictions, and analytics visualization.
+#
+# Version:
+# Final FYP Submission
+#
+# Last Updated:
+# 10 June 2026
+# ========================================================== 
+
+# ==========================================================
+# SYSTEM REQUIREMENTS
+# ==========================================================
+#
+# Frontend:
+# - HTML5
+# - CSS3
+# - JavaScript ES6
+# - Chart.js
+#
+# Backend:
+# - Python 3.x
+# - Flask Framework
+#
+# Database:
+# SQLite
+#
+# Machine Learning:
+# - Scikit-Learn
+#
+# Hardware:
+# - ESP32
+# - DHT22
+# - BH1750
+# - PZEM-004T
+#
+# ==========================================================
+
+# ==========================================================
 # IMPORT REQUIRED LIBRARIES
 # ==========================================================
 # hashlib         -> Generates SHA-256 cryptographic hashes
