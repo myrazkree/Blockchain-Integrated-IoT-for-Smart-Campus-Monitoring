@@ -1,10 +1,123 @@
+<!-- ==========================================================
+FILE INFORMATION
+==========================================================
+File Name:
+dashboard.html
+
+Project:
+Blockchain-Integrated IoT System for Smart Campus Monitoring
+
+Developer:
+Nur Amira Najwa binti Zulkhibree
+
+Supervisor:
+Associate Professor Dr. Halikul bin Lenando
+
+Purpose:
+Provides administrator dashboard for monitoring
+IoT sensor data, blockchain records, alerts,
+AI predictions, and analytics visualization.
+
+Version:
+Final FYP Submission
+
+Last Updated:
+10 June 2026
+========================================================== -->
+
+<!-- ==========================================================
+SYSTEM REQUIREMENTS
+==========================================================
+
+Frontend:
+- HTML5
+- CSS3
+- JavaScript ES6
+- Chart.js
+
+Backend:
+- Python 3.x
+- Flask Framework
+
+Database:
+- SQLite
+
+Machine Learning:
+- Scikit-Learn
+
+Hardware:
+- ESP32
+- DHT22
+- BH1750
+- PZEM-004T
+
+========================================================== -->
+
 <!DOCTYPE html>
+
+<!-- ==========================================================
+SMART CAMPUS AI DASHBOARD
+==========================================================
+Purpose:
+1. Provides administrator login access.
+2. Displays real-time sensor readings.
+3. Shows AI prediction results.
+4. Visualizes blockchain sensor records.
+5. Provides analytics and alert monitoring.
+========================================================== -->
+
 <html lang="en">
+
+<!-- ==========================================================
+HEAD SECTION
+==========================================================
+Loads:
+
+1. Character encoding (UTF-8)
+2. Responsive mobile support
+3. Dashboard title
+4. Chart.js library for analytics graphs
+5. Dashboard styling (CSS)
+========================================================== -->
+
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Smart Campus AI Dashboard</title>
+
+<!-- ==========================================================
+CHART.JS ANALYTICS ENGINE
+==========================================================
+Chart.js is used to visualize:
+
+- Temperature history
+- Light intensity history
+- Energy consumption history
+
+Data is retrieved from blockchain records
+and displayed as interactive line graphs.
+========================================================== -->
+
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+
+<!-- ==========================================================
+DASHBOARD USER INTERFACE DESIGN
+==========================================================
+Provides:
+
+- Dark cybersecurity theme
+- Responsive mobile layout
+- Navigation styling
+- Dashboard cards
+- Modal windows
+- Chart containers
+- Login page design
+
+Purpose:
+Improve visualization of Smart Campus
+monitoring and blockchain analytics.
+========================================================== -->
+
     <style>
         body {
             font-family: 'Segoe UI', sans-serif;
@@ -110,7 +223,64 @@
         button.login-btn:hover { background: #7dd3fc; }
     </style>
 </head>
+
+<!-- ==========================================================
+SYSTEM ARCHITECTURE OVERVIEW
+==========================================================
+
+ESP32 Nodes
+     │
+     ▼
+ Flask REST API
+     │
+     ├── Blockchain Ledger
+     ├── AI Prediction Engine
+     └── SQLite Database
+     │
+     ▼
+ Dashboard Frontend
+ (HTML/CSS/JavaScript)
+
+========================================================== -->
+
+<!-- ==========================================================
+SYSTEM DATA FLOW
+==========================================================
+
+1. Sensors collect environmental data.
+
+2. ESP32 nodes transmit readings
+   to Flask REST API.
+
+3. Flask validates and stores
+   readings as blockchain blocks.
+
+4. AI engine analyzes historical
+   blockchain records.
+
+5. Dashboard requests:
+   - Sensor data
+   - Blockchain records
+   - AI predictions
+
+6. Results are visualized in
+   real-time through charts
+   and monitoring cards.
+
+========================================================== -->
+
 <body>
+
+<!-- ==========================================================
+MODAL WINDOW COMPONENT
+==========================================================
+Reusable popup dialog used for:
+
+- Sensor details
+- Alert details
+- AI explanation
+- Enlarged analytics charts
+========================================================== -->
 
 <div id="modal">
     <div class="modal-content">
@@ -120,6 +290,16 @@
         <div id="modal-body"></div>
     </div>
 </div>
+
+<!-- ==========================================================
+ADMIN AUTHENTICATION PANEL
+==========================================================
+Purpose:
+
+1. Receives administrator credentials.
+2. Sends login request to Flask backend.
+3. Grants dashboard access upon success.
+========================================================== -->
 
 <div id="loginBox" style="display: none;">
     <h2 style="color:#38bdf8">Admin Login</h2>
@@ -137,10 +317,56 @@
 
     <h1>Smart Campus <span style="color:#38bdf8">AI</span> Ledger</h1>
 
+<!-- ==========================================================
+SYSTEM SUMMARY CARDS
+==========================================================
+Displays:
+
+1. Total registered sensors.
+2. Current active alerts.
+
+Cards are clickable and display
+additional details inside modal windows.
+========================================================== -->
+
     <div class="container">
         <div class="card" onclick="showDetails('sensors')"><h4>SENSORS</h4><div id="total-sensors" class="value" style="color:#38bdf8">0</div></div>
         <div class="card" onclick="showDetails('alerts')"><h4>ALERTS</h4><div id="active-alerts" class="value" style="color:#ef4444">0</div></div>
     </div>
+
+<!-- ==========================================================
+REAL-TIME SENSOR MONITORING
+==========================================================
+Monitors:
+
+- Temperature (DHT22)
+- Light Intensity (BH1750)
+- Energy Consumption (PZEM)
+
+Each card shows:
+
+- Latest sensor value
+- AI prediction result
+- Interactive graph filtering
+========================================================== -->
+
+<!-- ==========================================================
+IOT SENSOR NODES
+==========================================================
+
+Node 1
+Sensor: DHT22
+Parameter: Temperature
+
+Node 2
+Sensor: BH1750
+Parameter: Light Intensity
+
+Node 3
+Sensor: PZEM-004T
+Parameter: Energy Consumption
+
+========================================================== -->
 
     <div class="container">
         <div class="card" onclick="filterGraph(0)">
@@ -169,15 +395,90 @@
         </div>
     </div>
 
+<!-- ==========================================================
+ANALYTICS VISUALIZATION PANEL
+==========================================================
+Displays blockchain sensor history
+using Chart.js line graphs.
+
+Supports:
+
+- Real-time updates
+- Full-screen visualization
+- Dataset filtering
+========================================================== -->
+
     <div id="chart-container" onclick="enlargeChart()">
         <canvas id="chart"></canvas>
     </div>
 </div>
 
+<!-- ==========================================================
+DASHBOARD CONTROL LOGIC
+==========================================================
+Handles:
+
+1. Authentication
+2. Dashboard visibility
+3. Modal windows
+4. AI explanation popups
+5. Graph visualization
+6. API communication
+7. Real-time updates
+
+Backend APIs:
+
+/login
+/chain
+/predict
+========================================================== -->
+
+<!-- ==========================================================
+REST API DOCUMENTATION
+==========================================================
+
+POST /login
+Purpose:
+Authenticate administrator user.
+
+GET /chain
+Purpose:
+Retrieve blockchain ledger records.
+
+GET /predict
+Purpose:
+Retrieve AI-generated predictions.
+
+Response Format:
+JSON
+
+========================================================== -->
+
 <script>
 let chart, rawData = [];
 
-// FIXED: Automatically handles visibility based on auth storage check
+// ==========================================================
+// APPLICATION STARTUP
+// ==========================================================
+// Checks browser local storage to determine
+// whether administrator authentication already
+// exists and loads the appropriate interface.
+// ==========================================================
+
+// ==========================================================
+// CLIENT-SIDE SESSION MANAGEMENT
+// ==========================================================
+// Uses browser localStorage to remember
+// administrator login state between
+// page refreshes.
+//
+// Key:
+// "logged"
+//
+// Value:
+// true / false
+// ==========================================================
+
 window.onload = () => {
     if(localStorage.getItem("logged") === "true") {
         showDashboard();
@@ -187,6 +488,39 @@ window.onload = () => {
 };
 
 // --- AUTHENTICATION ---
+// ==========================================================
+// ADMIN LOGIN SERVICE
+// ==========================================================
+// Sends username and password to Flask backend.
+//
+// Endpoint:
+// POST /login
+//
+// Success:
+// Dashboard is displayed.
+//
+// Failure:
+// Error message is shown.
+// ==========================================================
+
+// ==========================================================
+// SECURITY CONSIDERATIONS
+// ==========================================================
+//
+// 1. Authentication required before
+//    dashboard access.
+//
+// 2. Login credentials verified by
+//    Flask backend.
+//
+// 3. Dashboard state stored locally
+//    using browser localStorage.
+//
+// 4. Backend should implement HTTPS
+//    in production environments.
+//
+// ==========================================================
+
 async function login() {
     const userVal = document.getElementById("user").value;
     const passVal = document.getElementById("pass").value;
@@ -209,10 +543,25 @@ async function login() {
     }
 }
 
+// ==========================================================
+// SESSION TERMINATION
+// ==========================================================
+// Removes authentication token from
+// browser storage and reloads page.
+// ==========================================================
+
 function logout() {
     localStorage.removeItem("logged");
     window.location.reload();
 }
+
+// ==========================================================
+// DASHBOARD INITIALIZATION
+// ==========================================================
+// Displays dashboard interface and
+// begins automatic data synchronization
+// every 3 seconds.
+// ==========================================================
 
 function showDashboard() {
     document.getElementById("loginBox").style.display = "none";
@@ -222,10 +571,28 @@ function showDashboard() {
 }
 
 // --- MODAL LOGIC ---
+// ==========================================================
+// MODAL MANAGEMENT
+// ==========================================================
+// Controls opening and closing of
+// popup information windows.
+// ==========================================================
+
 function closeModal() {
     document.getElementById("modal").style.display = "none";
     document.querySelector(".modal-content").classList.remove("modal-large");
 }
+
+// ==========================================================
+// SENSOR INFORMATION VIEWER
+// ==========================================================
+// Displays:
+// - Sensor IDs
+// - Sensor locations
+// - Active alert information
+//
+// Data originates from blockchain records.
+// ==========================================================
 
 function showDetails(type) {
     const b = document.getElementById("modal-body");
@@ -243,6 +610,37 @@ function showDetails(type) {
     }
 }
 
+// ==========================================================
+// AI PREDICTION EXPLAINER
+// ==========================================================
+// Explains how Linear Regression
+// generates future sensor forecasts
+// using historical blockchain data.
+// ==========================================================
+
+// ==========================================================
+// AI FORECASTING ENGINE
+// ==========================================================
+//
+// Machine Learning Algorithm:
+// Linear Regression
+//
+// Library:
+// Scikit-Learn
+//
+// Inputs:
+// Historical blockchain sensor records
+//
+// Outputs:
+// Next predicted sensor reading
+//
+// Prediction Targets:
+// - Temperature
+// - Light
+// - Energy
+//
+// ==========================================================
+
 function explainAI(type) {
     const b = document.getElementById("modal-body");
     document.getElementById("modal-title").innerText = "AI PREDICTION LOGIC";
@@ -256,6 +654,13 @@ function explainAI(type) {
 }
 
 // --- GRAPHING LOGIC ---
+// ==========================================================
+// ANALYTICS EXPANSION VIEW
+// ==========================================================
+// Opens enlarged graph inside modal
+// for detailed monitoring and analysis.
+// ==========================================================
+
 function enlargeChart() {
     const modalBody = document.getElementById("modal-body");
     document.querySelector(".modal-content").classList.add("modal-large");
@@ -274,6 +679,18 @@ function enlargeChart() {
     });
 }
 
+// ==========================================================
+// DATASET VISIBILITY CONTROL
+// ==========================================================
+// Allows users to show or hide:
+//
+// - Temperature graph
+// - Light graph
+// - Energy graph
+//
+// Improves visual analysis.
+// ==========================================================
+
 function filterGraph(idx) {
     let allHidden = true;
     chart.data.datasets.forEach((ds, i) => {
@@ -285,8 +702,100 @@ function filterGraph(idx) {
 }
 
 // --- DATA FETCHING ---
+// ==========================================================
+// REAL-TIME DATA SYNCHRONIZATION
+// ==========================================================
+//
+// Fetches:
+//
+// 1. Blockchain ledger data
+//    Endpoint: GET /chain
+//
+// 2. AI prediction data
+//    Endpoint: GET /predict
+//
+// Updates:
+//
+// - Sensor values
+// - Alert counters
+// - AI forecasts
+// - Analytics graphs
+//
+// Refresh interval:
+// Every 3 seconds
+// ==========================================================
+
+// ==========================================================
+// BLOCKCHAIN INTEGRATION
+// ==========================================================
+//
+// Sensor readings are stored as
+// blockchain blocks.
+//
+// Each block contains:
+//
+// - Timestamp
+// - Sensor ID
+// - Sensor Type
+// - Sensor Value
+// - Location
+//
+// Blockchain records are retrieved
+// through the /chain endpoint.
+//
+// ==========================================================
+
+// ==========================================================
+// ERROR HANDLING STRATEGY
+// ==========================================================
+//
+// Possible Errors:
+//
+// 1. Network failure
+// 2. Backend unavailable
+// 3. Invalid login credentials
+// 4. Missing sensor records
+// 5. AI prediction unavailable
+//
+// Recovery:
+//
+// - User notification
+// - Console logging
+// - Automatic refresh retry
+//
+// ==========================================================
+
 async function loadData() {
     try {
+
+// ==========================================================
+// BACKEND API COMMUNICATION
+// ==========================================================
+// Retrieves:
+//
+// /chain   -> Blockchain ledger records
+// /predict -> AI prediction results
+//
+// Both requests execute simultaneously
+// using Promise.all() to improve
+// dashboard performance.
+// ==========================================================
+
+// ==========================================================
+// PERFORMANCE OPTIMIZATION
+// ==========================================================
+//
+// Promise.all() executes multiple
+// API requests simultaneously.
+//
+// Benefits:
+//
+// - Faster dashboard refresh
+// - Reduced waiting time
+// - Improved responsiveness
+//
+// ==========================================================
+
         const [chainRes, aiRes] = await Promise.all([
             fetch("/chain"),
             fetch("/predict")
@@ -305,6 +814,21 @@ async function loadData() {
         let tVal = [], lVal = [], eVal = [], lbls = [];
         let cur = {t:"--", l:"--", e:"--"};
 
+// ==========================================================
+// BLOCKCHAIN DATA EXTRACTION
+// ==========================================================
+// Converts blockchain records into
+// datasets suitable for graphical
+// visualization and dashboard display.
+//
+// Output:
+//
+// - Temperature dataset
+// - Light dataset
+// - Energy dataset
+// - Timestamp labels
+// ==========================================================
+
         rawData.forEach(b => {
             const time = new Date(b.timestamp * 1000).toLocaleTimeString([], {hour:'2-digit', minute:'2-digit'});
             lbls.push(time);
@@ -317,6 +841,21 @@ async function loadData() {
         document.getElementById("temperature").innerText = cur.t;
         document.getElementById("light").innerText = cur.l;
         document.getElementById("energy").innerText = cur.e;
+
+// ==========================================================
+// CHART INITIALIZATION
+// ==========================================================
+// Creates analytics graph during the
+// first dashboard load.
+//
+// Datasets:
+// - Temperature
+// - Light
+// - Energy
+//
+// Subsequent updates only refresh data
+// without recreating the chart object.
+// ==========================================================
 
         if(!chart) {
             chart = new Chart(document.getElementById("chart"), {
@@ -345,5 +884,88 @@ async function loadData() {
     } catch(e) { console.log("Data connection lost."); }
 }
 </script>
+
+<!-- ==========================================================
+END OF DASHBOARD
+==========================================================
+Frontend Technologies:
+- HTML5
+- CSS3
+- JavaScript ES6
+- Chart.js
+
+Backend Services:
+- Flask REST API
+- SQLite Blockchain Ledger
+- AI Prediction Engine
+
+Project:
+Blockchain-Integrated IoT System for
+Smart Campus Monitoring
+========================================================== -->
+
+<!-- ==========================================================
+FUTURE ENHANCEMENTS
+==========================================================
+
+1. Blockchain consensus validation.
+2. Multi-user authentication.
+3. Role-based access control.
+4. AI anomaly detection.
+5. Cloud deployment support.
+6. MQTT integration.
+7. Mobile application dashboard.
+8. Real-time push notifications.
+
+========================================================== -->
+
+<!-- ==========================================================
+ACADEMIC CONTRIBUTION
+==========================================================
+
+This dashboard demonstrates the
+integration of:
+
+1. Internet of Things (IoT)
+2. Blockchain Technology
+3. Artificial Intelligence
+4. Web-Based Monitoring Systems
+
+to provide secure and intelligent
+Smart Campus monitoring.
+
+========================================================== -->
+
+<!-- ==========================================================
+COPYRIGHT NOTICE
+==========================================================
+
+© 2026 Nur Amira Najwa binti Zulkhibree
+
+This source code was developed for
+academic purposes under the project:
+
+"Blockchain-Integrated IoT System for
+Smart Campus Monitoring"
+
+Faculty of Computer Science and Information Technology
+Universiti Malaysia Sarawak (UNIMAS)
+
+========================================================== -->
+
+<footer style="
+        background:#0f172a;
+        padding:15px;
+        margin-top:30px;
+        border-top:1px solid #334155;
+        color:#94a3b8;
+        font-size:0.8rem;
+        text-align:center;
+    ">
+        Blockchain-Integrated IoT System for Smart Campus Monitoring |
+        UNIMAS FYP 2026 |
+        Developed by Nur Amira Najwa binti Zulkhibree
+    </footer>
+
 </body>
 </html>
