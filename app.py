@@ -1,3 +1,16 @@
+# ==========================================================
+# IMPORT REQUIRED LIBRARIES
+# ==========================================================
+# hashlib         -> Generates SHA-256 cryptographic hashes
+# json            -> Converts data structures into JSON strings
+# time            -> Generates timestamps for blockchain records
+# Flask           -> Web framework for API and dashboard
+# CORS            -> Allows ESP32 and frontend communication
+# NumPy           -> Data processing for AI prediction
+# LinearRegression-> Machine learning model for forecasting
+# SQLAlchemy      -> Database ORM for SQLite interaction
+# ==========================================================
+
 import hashlib
 import json
 from time import time
@@ -7,17 +20,36 @@ import numpy as np
 from sklearn.linear_model import LinearRegression
 from flask_sqlalchemy import SQLAlchemy
 
-# ---------------- APP SETUP ----------------
+# ==========================================================
+# APPLICATION INITIALIZATION
+# ==========================================================
+# Creates Flask web application and enables
+# cross-origin communication between frontend,
+# ESP32 IoT nodes and backend services.
+# ==========================================================
+
 app = Flask(__name__)
 CORS(app)
 
+# Configure SQLite database location
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:////home/amirazkree/smartcampus/campus.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-# ---------------- DATABASE ----------------
-# FIXED: Added dedicated columns to store blockchain hashes permanently
+# ==========================================================
+# SENSOR DATA TABLE
+# ==========================================================
+# Stores:
+# - Sensor information
+# - Sensor readings
+# - Blockchain hashes
+# - Blockchain links between blocks
+#
+# current_hash  -> SHA-256 hash generated from block contents
+# previous_hash -> Stores parent block hash to create blockchain linkage
+# ==========================================================
+
 class SensorData(db.Model):
     id = db.Column(db.Integer, primary_key=True)
     sensor_id = db.Column(db.String(50))
@@ -29,17 +61,36 @@ class SensorData(db.Model):
     current_hash = db.Column(db.String(64))   # Stores the SHA-256 string
     previous_hash = db.Column(db.String(64))  # Links to the block before it
 
-# ---------------- ROUTES ----------------
+# ==========================================================
+# DASHBOARD PAGE
+# ==========================================================
+# Loads the main Smart Campus dashboard
+# showing sensor values, AI predictions
+# and analytics charts.
+# ==========================================================
 
 @app.route('/')
 def home():
     return render_template("index.html")
 
+# ==========================================================
+# BLOCKCHAIN LEDGER PAGE
+# ==========================================================
+# Displays all blockchain records together
+# with their integrity validation status.
+# ==========================================================
 
 @app.route('/logs')
 def logs():
     return render_template("logs.html")
 
+# ==========================================================
+# ADMIN AUTHENTICATION
+# ==========================================================
+# Validates administrator username
+# and password before allowing
+# dashboard access.
+# ==========================================================
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -48,6 +99,19 @@ def login():
         return jsonify({"status": "success"})
     return jsonify({"status": "fail"})
 
+# ==========================================================
+# BLOCK CREATION AND DATA INGESTION
+# ==========================================================
+# Purpose:
+# 1. Receive sensor data from ESP32 nodes.
+# 2. Generate alert IDs when thresholds are exceeded.
+# 3. Retrieve previous block hash.
+# 4. Build blockchain payload.
+# 5. Generate SHA-256 hash.
+# 6. Store block and hashes permanently in SQLite.
+#
+# Each sensor reading becomes a blockchain block.
+# ==========================================================
 
 @app.route('/add_data', methods=['POST'])
 def add_data():
@@ -68,7 +132,11 @@ def add_data():
     except (ValueError, TypeError):
         sensor_value = 0.0
 
-    # 1. FIXED: Look up the last entry written to the database to find the parent hash
+# Retrieve latest block from database.
+# This block becomes the parent of the new block.
+# Blockchain continuity is maintained using
+# previous_hash references.
+
     last_record = SensorData.query.order_by(SensorData.id.desc()).first()
 
     if last_record:
@@ -96,6 +164,10 @@ def add_data():
         "previous_hash": prev_hash
     }, sort_keys=True).encode()
 
+# Generate unique SHA-256 fingerprint.
+# Any change in block contents produces
+# a completely different hash value.
+
     calculated_hash = hashlib.sha256(block_string).hexdigest()
 
     # 3. FIXED: Store all raw metrics alongside the actual cryptographic signature hashes
@@ -115,12 +187,28 @@ def add_data():
 
     return jsonify({"message": "Data saved securely inside block ledger", "hash": calculated_hash}), 200
 
+# ==========================================================
+# BLOCKCHAIN SYNCHRONIZATION SERVICE
+# ==========================================================
+# Purpose:
+# 1. Retrieve all stored blocks.
+# 2. Recalculate hashes at runtime.
+# 3. Verify blockchain integrity.
+# 4. Detect tampering attempts.
+# 5. Return chain to dashboard.
+# ==========================================================
+
 @app.route('/chain', methods=['GET'])
 def chain():
     unique_sensors = db.session.query(SensorData.sensor_id).distinct().count()
     active_alerts = SensorData.query.filter_by(status='Alert').count()
 
-    # Base anchor point initialization
+# Genesis Block:
+# The first block in the blockchain.
+# It has no parent block and acts
+# as the starting reference point
+# for the entire chain.
+
     synchronized_chain = [{
         "index": 0,
         "timestamp": 1779466552.4295905,
@@ -159,7 +247,32 @@ def chain():
             # INTEGRITY CHECK LOGIC (Matches Table 5.3.2.1)
             integrity_status = "VALID"
 
+# ==========================================================
+# BLOCKCHAIN INTEGRITY VERIFICATION
+# ==========================================================
+#
+# Check 1:
+# Recompute block hash and compare
+# against stored hash.
+#
+# Result:
+# CHAIN BROKEN
+#
+# Check 2:
+# Verify previous_hash correctly
+# references parent block hash.
+#
+# Result:
+# INVALID PARENT
+#
+# If both checks pass:
+# VALID
+# ==========================================================
+
             # Check 1: Did the current block data change? (Triggers CHAIN BROKEN)
+            # Runtime hash is recalculated and compared
+            # against the stored hash. If they differ,
+            # the block data has been modified after storage.
             if recomputed_runtime_hash != record.current_hash:
                 integrity_status = "CHAIN BROKEN"
 
@@ -189,6 +302,19 @@ def chain():
         "active_alerts": active_alerts
     })
 
+# ==========================================================
+# AI FORECASTING ENGINE
+# ==========================================================
+# Uses Linear Regression to learn
+# trends from historical sensor data
+# and estimate the next expected value.
+#
+# Sensor Types:
+# - Temperature
+# - Light
+# - Energy
+# ==========================================================
+
 @app.route('/predict', methods=['GET'])
 def predict():
     predictions = {}
@@ -204,6 +330,10 @@ def predict():
                 y = np.array(values)
                 X = np.array(range(len(y))).reshape(-1, 1)
 
+# Train linear regression model
+# using historical blockchain data
+# and forecast the next expected value.
+
                 model = LinearRegression()
                 model.fit(X, y)
 
@@ -214,6 +344,15 @@ def predict():
             predictions[t] = "Error"
 
     return jsonify(predictions)
+
+# ==========================================================
+# ENERGY SENSOR SIMULATION
+# ==========================================================
+# Generates sample energy readings
+# for testing AI prediction and
+# blockchain functionality when
+# physical sensor hardware is unavailable.
+# ==========================================================
 
 @app.route('/simulate_energy')
 def simulate_energy():
@@ -233,6 +372,11 @@ def simulate_energy():
             prev_hash = "0"
             next_idx = 1
 
+# Create blockchain payload containing
+# sensor information and monitoring results.
+# This data will be digitally signed
+# using SHA-256 hashing.
+
         payload = {
             "sensor_id": "S003",
             "location": "Block C",
@@ -249,7 +393,22 @@ def simulate_energy():
             "previous_hash": prev_hash
         }, sort_keys=True).encode()
 
+# Generate SHA-256 cryptographic signature.
+#
+# Any modification to:
+# - sensor value
+# - timestamp
+# - sensor ID
+# - previous hash
+#
+# will produce a completely different hash,
+# allowing tampering detection.
+
         calculated_hash = hashlib.sha256(block_string).hexdigest()
+
+# Save blockchain block into database
+# together with its cryptographic hash
+# and link to the previous block.
 
         new_data = SensorData(
             sensor_id="S003",
@@ -271,10 +430,19 @@ def simulate_energy():
     })
 
 # ---------------- STARTUP ----------------
+# Automatically creates database tables
+# during application startup if they
+# do not already exist.
 with app.app_context():
     db.create_all()
 
-
 # ---------------- RUN ----------------
+# ==========================================================
+# APPLICATION ENTRY POINT
+# ==========================================================
+# Starts Flask web server and exposes
+# blockchain APIs, dashboard pages
+# and AI prediction services.
+# ==========================================================
 if __name__ == "__main__":
     app.run()
