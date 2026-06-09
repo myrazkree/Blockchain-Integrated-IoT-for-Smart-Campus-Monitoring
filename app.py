@@ -5,7 +5,7 @@
 # dashboard.html
 #
 # Project:
-# Blockchain-Integrated IoT System for Smart Campus Monitoring
+# Blockchain Integrated IoT System for Smart Campus Monitoring
 #
 # Developer:
 # Nur Amira Najwa binti Zulkhibree
@@ -500,6 +500,7 @@ with app.app_context():
 # blockchain APIs, dashboard pages
 # and AI prediction services.
 # ==========================================================
+
 if __name__ == "__main__":
     app.run()
 
@@ -544,7 +545,7 @@ if __name__ == "__main__":
 # This source code was developed for
 # academic purposes under the project:
 #
-# "Blockchain-Integrated IoT System for
+# "Blockchain Integrated IoT System for
 # Smart Campus Monitoring"
 #
 # Faculty of Computer Science and Information Technology
