@@ -1,9 +1,44 @@
+/* ==========================================================
+   FILE INFORMATION
+   ==========================================================
+   File Name:
+   node3_pzem.ino
+
+   Project:
+   Blockchain Integrated IoT System for Smart Campus Monitoring
+
+   Description:
+   This ESP32 program reads electrical parameters from the
+   PZEM004T energy meter sensor, including voltage, current,
+   power, energy consumption, frequency, and power factor.
+   It performs error checking and displays results via Serial Monitor.
+
+   Key Functions:
+   - ESP32 UART communication setup
+   - PZEM004T sensor data acquisition
+   - Electrical parameter monitoring
+   - Data validation (NaN checking)
+   - Serial output debugging
+
+   Developer:
+   Nur Amira Najwa binti Zulkhibree
+
+   Supervisor:
+   Associate Professor Dr. Halikul bin Lenando
+
+   Last Updated:
+   10 June 2026
+   ========================================================== */
+   
 #include <Arduino.h>
 #include <PZEM004Tv30.h>
 
-
+// ----------------------------
+// ESP32 Pin Configuration
+// ----------------------------
 #if defined(ESP32)
 
+// Define RX/TX pins if not already defined
 #if !defined(PZEM_RX_PIN) && !defined(PZEM_TX_PIN)
 #define PZEM_RX_PIN 16
 #define PZEM_TX_PIN 17
@@ -11,28 +46,47 @@
 
 #define PZEM_SERIAL Serial2
 #define CONSOLE_SERIAL Serial
+
 PZEM004Tv30 pzem(PZEM_SERIAL, PZEM_RX_PIN, PZEM_TX_PIN);
 
 #elif defined(ESP8266)
 
+// ESP8266 configuration
 #define PZEM_SERIAL Serial
 #define CONSOLE_SERIAL Serial1
-PZEM004Tv30 pzem(PZEM_SERIAL);
-#else
 
+PZEM004Tv30 pzem(PZEM_SERIAL);
+
+#else
+// Default configuration for other boards
 #define PZEM_SERIAL Serial2
 #define CONSOLE_SERIAL Serial
+
 PZEM004Tv30 pzem(PZEM_SERIAL);
+
 #endif
 
+// ----------------------------
+// Setup Function
+// Runs once at startup
+// ----------------------------
 void setup() {
-    CONSOLE_SERIAL.begin(115200);
+    CONSOLE_SERIAL.begin(115200);   // Initialize Serial Monitor
 }
 
+// ----------------------------
+// Main Loop
+// Continuously reads energy data
+// ----------------------------
 void loop() {
+    
+  // Print sensor address (useful for debugging multiple devices)
     CONSOLE_SERIAL.print("Custom Address:");
     CONSOLE_SERIAL.println(pzem.readAddress(), HEX);
 
+  // ----------------------------
+  // Read Electrical Parameters
+  // ----------------------------
     float voltage = pzem.voltage();
     float current = pzem.current();
     float power = pzem.power();
@@ -40,6 +94,10 @@ void loop() {
     float frequency = pzem.frequency();
     float pf = pzem.pf();
 
+  // ----------------------------
+  // Error Checking
+  // Ensure valid sensor readings
+  // ----------------------------
     if(isnan(voltage)){
         CONSOLE_SERIAL.println("Error reading voltage");
     } else if (isnan(current)) {
@@ -54,6 +112,9 @@ void loop() {
         CONSOLE_SERIAL.println("Error reading power factor");
     } else {
 
+    // ----------------------------
+    // Display Valid Sensor Data
+    // ----------------------------
         CONSOLE_SERIAL.print("Voltage: ");      CONSOLE_SERIAL.print(voltage);      CONSOLE_SERIAL.println("V");
         CONSOLE_SERIAL.print("Current: ");      CONSOLE_SERIAL.print(current);      CONSOLE_SERIAL.println("A");
         CONSOLE_SERIAL.print("Power: ");        CONSOLE_SERIAL.print(power);        CONSOLE_SERIAL.println("W");
@@ -64,6 +125,7 @@ void loop() {
     }
 
 
-    CONSOLE_SERIAL.println();
-    delay(2000);
+    CONSOLE_SERIAL.println();   // spacing for readability
+    
+    delay(2000);    // wait before next reading
 }
