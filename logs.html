@@ -1,3 +1,58 @@
+<!-- ==========================================================
+FILE INFORMATION
+==========================================================
+File Name:
+dashboard.html
+
+Project:
+Blockchain Integrated IoT System for Smart Campus Monitoring
+
+Developer:
+Nur Amira Najwa binti Zulkhibree
+
+Supervisor:
+Associate Professor Dr. Halikul bin Lenando
+
+Purpose:
+Provides administrator dashboard for monitoring
+IoT sensor data, blockchain records, alerts,
+AI predictions, and analytics visualization.
+
+Version:
+Final FYP Submission
+
+Last Updated:
+10 June 2026
+========================================================== -->
+
+<!-- ==========================================================
+SYSTEM REQUIREMENTS
+==========================================================
+
+Frontend:
+- HTML5
+- CSS3
+- JavaScript ES6
+- Chart.js
+
+Backend:
+- Python 3.x
+- Flask Framework
+
+Database:
+- SQLite
+
+Machine Learning:
+- Scikit-Learn
+
+Hardware:
+- ESP32
+- DHT22
+- BH1750
+- PZEM-004T
+
+========================================================== -->
+
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -5,28 +60,28 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blockchain Logs</title>
     <style>
-        body { 
-            font-family: 'Segoe UI', sans-serif; 
-            background-color: #0d1425; 
-            color: white; 
-            text-align: center; 
-            margin: 0; 
+        body {
+            font-family: 'Segoe UI', sans-serif;
+            background-color: #0d1425;
+            color: white;
+            text-align: center;
+            margin: 0;
             padding: 0;
         }
-        .top-nav { 
-            background-color: #0d1425; 
-            padding: 15px; 
-            border-bottom: 2px solid #38bdf8; 
-            margin-bottom: 20px; 
-            display: flex; 
-            justify-content: center; 
-            gap: 25px; 
-            align-items: center; 
+        .top-nav {
+            background-color: #0d1425;
+            padding: 15px;
+            border-bottom: 2px solid #38bdf8;
+            margin-bottom: 20px;
+            display: flex;
+            justify-content: center;
+            gap: 25px;
+            align-items: center;
             flex-wrap: wrap; /* Allows nav buttons to wrap on narrow devices */
         }
         .nav-link { color: #38bdf8; text-decoration: none; font-weight: bold; text-transform: uppercase; font-size: 0.85rem; }
         .logout-btn { color: #ef4444; cursor: pointer; border: 1px solid #ef4444; padding: 5px 12px; border-radius: 5px; font-size: 0.8rem; }
-        
+
         h2 {
             font-size: clamp(1.4rem, 4vw, 2rem);
             margin: 20px 10px;
@@ -46,16 +101,16 @@
         }
 
         /* CHANGED: Made the layout fluid within its parent block */
-        table { 
-            width: 100%; 
-            border-collapse: collapse; 
+        table {
+            width: 100%;
+            border-collapse: collapse;
             background: #1e293b;
             min-width: 650px; /* Guarantees data columns stay neat and highly readable */
         }
-        th, td { 
-            padding: 12px 10px; 
-            border: 1px solid #334155; 
-            text-align: left; 
+        th, td {
+            padding: 12px 10px;
+            border: 1px solid #334155;
+            text-align: left;
             font-size: clamp(0.75rem, 2.5vw, 0.85rem); /* Dynamic text scaling */
             word-break: break-all; /* Stops long hashes from pushing elements off layout boundaries */
         }
@@ -110,7 +165,7 @@
     <script>
     window.onload = () => {
         if (localStorage.getItem("logged") !== "true") {
-            window.location.href = "/"; 
+            window.location.href = "/";
         } else {
             loadLogs();
             setInterval(loadLogs, 5000);
@@ -119,7 +174,7 @@
 
     function logout() {
         localStorage.removeItem("logged");
-        window.location.href = "/"; 
+        window.location.href = "/";
     }
 
     async function loadLogs() {
@@ -128,7 +183,7 @@
             const data = await res.json();
             const tbody = document.querySelector("#logTable tbody");
 
-            tbody.innerHTML = ""; 
+            tbody.innerHTML = "";
 
             data.chain.reverse().forEach(b => {
                 const row = document.createElement('tr');
@@ -147,7 +202,7 @@
                 } else {
                     const sensorData = b.data || {};
                     const isAlert = sensorData.status === 'Alert';
-                    
+
                     // FIXED: Read the new saved_hash value from the payload
                     const currentBlockHash = b.saved_hash || "N/A";
 
@@ -185,5 +240,69 @@
         }
     }
     </script>
+
+<!-- ==========================================================
+FUTURE ENHANCEMENTS
+==========================================================
+
+1. Blockchain consensus validation.
+2. Multi-user authentication.
+3. Role-based access control.
+4. AI anomaly detection.
+5. Cloud deployment support.
+6. MQTT integration.
+7. Mobile application dashboard.
+8. Real-time push notifications.
+
+========================================================== -->
+
+<!-- ==========================================================
+ACADEMIC CONTRIBUTION
+==========================================================
+
+This dashboard demonstrates the
+integration of:
+
+1. Internet of Things (IoT)
+2. Blockchain Technology
+3. Artificial Intelligence
+4. Web-Based Monitoring Systems
+
+to provide secure and intelligent
+Smart Campus monitoring.
+
+========================================================== -->
+
+<!-- ==========================================================
+COPYRIGHT NOTICE
+==========================================================
+
+© 2026 Nur Amira Najwa binti Zulkhibree
+
+This source code was developed for
+academic purposes under the project:
+
+"Blockchain Integrated IoT System for
+Smart Campus Monitoring"
+
+Faculty of Computer Science and Information Technology
+Universiti Malaysia Sarawak (UNIMAS)
+
+========================================================== -->
+
+<footer style="
+        background:#0f172a;
+        padding:15px;
+        margin-top:30px;
+        border-top:1px solid #334155;
+        color:#94a3b8;
+        font-size:0.8rem;
+        text-align:center;
+    ">
+        Blockchain Integrated IoT System for Smart Campus Monitoring |
+        UNIMAS FYP 2026 |
+        Developed by Nur Amira Najwa binti Zulkhibree
+    </footer>
+
 </body>
 </html>
