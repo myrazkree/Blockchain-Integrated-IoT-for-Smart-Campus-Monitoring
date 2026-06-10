@@ -55,7 +55,7 @@ Hardware:
 
 <!DOCTYPE html>
 <html lang="en">
-    
+
 <!-- ==========================================================
 HEAD SECTION
 ==========================================================
@@ -66,7 +66,7 @@ Contains metadata, page title, and internal CSS styling.
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Blockchain Logs</title>
-   
+
  <!-- ==========================================================
 USER INTERFACE STYLING (CSS)
 ==========================================================
@@ -177,6 +177,79 @@ PAGE HEADER
     <h2>Campus Blockchain Ledger</h2>
 
 <!-- ==========================================================
+BLOCKCHAIN LOG SEARCH AND FILTER PANEL
+==========================================================
+Functions:
+1. Search blockchain records.
+2. Filter Normal / Alert records.
+3. Export blockchain ledger to CSV.
+========================================================== -->
+
+<div style="
+width:95%;
+max-width:1100px;
+margin:auto;
+display:flex;
+gap:10px;
+flex-wrap:wrap;
+justify-content:center;
+margin-bottom:15px;
+">
+
+    <input
+        type="text"
+        id="searchInput"
+        placeholder="Search Sensor ID, Type, Status..."
+        onkeyup="searchTable()"
+        style="
+        flex:1;
+        min-width:250px;
+        padding:10px;
+        border-radius:8px;
+        border:1px solid #334155;
+        background:#1e293b;
+        color:white;
+        ">
+
+    <select
+        id="statusFilter"
+        onchange="filterStatus()"
+        style="
+        padding:10px;
+        border-radius:8px;
+        border:1px solid #334155;
+        background:#1e293b;
+        color:white;
+        ">
+        <option value="all">All Records</option>
+        <option value="normal">Normal</option>
+        <option value="alert">Alert</option>
+        <option value="temperature" or sensor_id == "S001"">Temperature Logs (S001)</option>
+        <option value="light" or sensor_id == "S002"">Light Intensity Logs (S002)</option>
+        <option value="energy" or sensor_id == "S003"">Energy Consumption Logs (S003)</option>
+        <option value="integrity_status" == "VALID"">Tampered Logs (VALID)</option>
+        <option value="integrity_status" == "CHAIN BROKEN"">Tampered Logs (CHAIN BROKEN)</option>
+        <option value="integrity_status" == "INVALID PARENT"">Tampered Logs (INVALID PARENT)</option>
+
+    </select>
+
+    <button
+        onclick="exportTable()"
+        style="
+        background:#38bdf8;
+        color:#0d1425;
+        border:none;
+        padding:10px 15px;
+        border-radius:8px;
+        cursor:pointer;
+        font-weight:bold;
+        ">
+        Export CSV
+    </button>
+
+</div>
+
+<!-- ==========================================================
 BLOCKCHAIN TABLE DISPLAY
 ========================================================== -->
 
@@ -203,13 +276,12 @@ SCRIPT SECTION (LOGIC + DATA FETCHING)
 ========================================================== -->
 
     <script>
-    
+
     window.onload = () => {
         if (localStorage.getItem("logged") !== "true") {
             window.location.href = "/";
         } else {
             loadLogs();
-            setInterval(loadLogs, 5000);
         }
     };
 
@@ -232,6 +304,9 @@ and renders it into HTML table format.
             const tbody = document.querySelector("#logTable tbody");
 
             tbody.innerHTML = "";
+
+            // OPTIMIZED: Reverse the array and take the top 50 newest records to keep the page snappy
+            const optimizedChain = data.chain.reverse().slice(0, 50);
 
             data.chain.reverse().forEach(b => {
                 const row = document.createElement('tr');
@@ -290,6 +365,129 @@ GENESIS BLOCK HANDLING
             console.error("Database or network server is offline.", err);
         }
     }
+
+// ==========================================================
+// BLOCKCHAIN SEARCH FUNCTION
+// ==========================================================
+
+function searchTable() {
+
+    let input =
+        document.getElementById("searchInput");
+
+    let filter =
+        input.value.toLowerCase();
+
+    let rows =
+        document.querySelectorAll("#logTable tbody tr");
+
+    rows.forEach(row => {
+
+        let text =
+            row.innerText.toLowerCase();
+
+        row.style.display =
+            text.includes(filter) ? "" : "none";
+    });
+}
+
+// ==========================================================
+// BLOCKCHAIN STATUS FILTER
+// ==========================================================
+
+function filterStatus() {
+
+    const filter =
+        document.getElementById("statusFilter")
+        .value
+        .toLowerCase();
+
+    const rows =
+        document.querySelectorAll("#logTable tbody tr");
+
+    rows.forEach(row => {
+
+        const text =
+            row.innerText.toLowerCase();
+
+        if(filter === "all") {
+            row.style.display = "";
+        }
+        else if(text.includes(filter)) {
+            row.style.display = "";
+        }
+        else {
+            row.style.display = "none";
+        }
+    });
+}
+
+// ==========================================================
+// BLOCKCHAIN CSV EXPORT
+// ==========================================================
+
+function exportTable() {
+    // 1. Fetch the data rows directly from the table body to capture what's loaded
+    let rows = document.querySelectorAll("#logTable tbody tr");
+    if (rows.length === 0) {
+        alert("No data available to export.");
+        return;
+    }
+
+    // 2. Define the exact CSV headers to match your system specs
+    let csv = [["Block #", "Sensor ID", "Type", "Value", "Status", "Alert ID", "Hash", "Integrity"]];
+
+    rows.forEach(row => {
+        let cols = row.querySelectorAll("td");
+        if (cols.length === 8) { // Normal block format
+            let blockNum = cols[0].innerText.replace(/"/g, '""');
+            let sensorId = cols[1].innerText.replace(/"/g, '""');
+            let type     = cols[2].innerText.replace(/"/g, '""');
+            let value    = cols[3].innerText.replace(/"/g, '""');
+            let status   = cols[4].innerText.replace(/"/g, '""');
+            let alertId  = cols[5].innerText.replace(/"/g, '""');
+
+            // OPTIMIZED: Grab the full tracking hash from the hover 'title' attribute instead of the truncated '...' string!
+            let fullHash = cols[6].getAttribute("title") || cols[6].innerText;
+            fullHash     = fullHash.replace(/"/g, '""');
+
+            let integrity = cols[7].innerText.replace(/"/g, '""');
+
+            csv.push([
+                `"${blockNum}"`,
+                `"${sensorId}"`,
+                `"${type}"`,
+                `"${value}"`,
+                `"${status}"`,
+                `"${alertId}"`,
+                `"${fullHash}"`,
+                `"${integrity}"`
+            ]);
+        } else if (cols.length === 4) { // Handling for the Genesis block spacing format
+            let blockNum = cols[0].innerText.replace(/"/g, '""');
+            let genData  = cols[1].innerText.replace(/"/g, '""');
+            let fullHash = cols[2].getAttribute("title") || cols[2].innerText;
+            fullHash     = fullHash.replace(/"/g, '""');
+            let integrity = cols[3].innerText.replace(/"/g, '""');
+
+            csv.push([`"${blockNum}"`, '"N/A"', '"N/A"', '"0"', '"Normal"', `"${genData}"`, `"${fullHash}"`, `"${integrity}"`]);
+        }
+    });
+
+    // 3. Generate file blob and auto-trigger download
+    let csvString = csv.map(e => e.join(",")).join("\n");
+    let csvFile = new Blob([csvString], { type: "text/csv;charset=utf-8;" });
+    let downloadLink = document.createElement("a");
+
+    downloadLink.href = URL.createObjectURL(csvFile);
+    downloadLink.download = "blockchain_campus_logs.csv";
+    downloadLink.style.display = "none";
+
+    document.body.appendChild(downloadLink);
+    downloadLink.click();
+    document.body.removeChild(downloadLink);
+}
+
     </script>
 
 <!-- ==========================================================
